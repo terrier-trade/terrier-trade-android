@@ -1,23 +1,53 @@
 package edu.bu.terriertrade.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Brand
-val Scarlet = Color(0xFFCC0000)
-val ScarletDark = Color(0xFF9E0000)
-val ScarletLight = Color(0xFFFFDAD4)
+private val LightColors = lightColorScheme(
+    primary = Scarlet,
+    onPrimary = Color.White,
+    primaryContainer = ScarletLight,
+    onPrimaryContainer = ScarletDark,
+    secondary = Ink,
+    onSecondary = Color.White,
+    background = Paper,
+    onBackground = Ink,
+    surface = Paper,
+    onSurface = Ink,
+    surfaceVariant = PaperDim,
+    onSurfaceVariant = InkMuted,
+    outline = Line,
+)
 
-// Neutrals (light)
-val Ink = Color(0xFF1F1B1A)
-val InkMuted = Color(0xFF5E5654)
-val Paper = Color(0xFFFFFBFA)
-val PaperDim = Color(0xFFF5EEEC)
-val Line = Color(0xFFD8C2BE)
+private val DarkColors = darkColorScheme(
+    primary = ScarletOnDark,
+    onPrimary = Color(0xFF690000),
+    primaryContainer = ScarletDark,
+    onPrimaryContainer = ScarletLight,
+    secondary = NightText,
+    onSecondary = NightBg,
+    background = NightBg,
+    onBackground = NightText,
+    surface = NightSurface,
+    onSurface = NightText,
+    surfaceVariant = NightSurfaceHigh,
+    onSurfaceVariant = NightMuted,
+    outline = Color(0xFF534341),
+)
 
-// Neutrals (dark)
-val ScarletOnDark = Color(0xFFFFB4A8)
-val NightBg = Color(0xFF1A1110)
-val NightSurface = Color(0xFF231918)
-val NightSurfaceHigh = Color(0xFF322827)
-val NightText = Color(0xFFF1DFDC)
-val NightMuted = Color(0xFFD8C2BE)
+@Composable
+fun TerrierTradeTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    MaterialTheme(
+        colorScheme = if (darkTheme) DarkColors else LightColors,
+        typography = Typography,
+        shapes = Shapes,
+        content = content
+    )
+}
