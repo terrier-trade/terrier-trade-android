@@ -1,0 +1,77 @@
+# ---------------------------------------------------------------
+# Terrier Trade .gitignore
+# Keep build output, IDE files, logs, local config and secrets out of Git.
+# The Gradle wrapper (gradlew, gradlew.bat, gradle/wrapper/*) stays tracked
+# so the project builds from a clean checkout.
+# ---------------------------------------------------------------
+
+# Gradle and Kotlin build output
+.gradle/
+build/
+**/build/
+.kotlin/
+out/
+bin/
+gen/
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Built app files
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output-metadata.json
+release/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.navigation/
+.vscode/
+
+# Local machine config and secrets (never commit these)
+local.properties
+secrets.properties
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+.env
+.env.*
+
+# Logs, crash dumps and profiler output
+*.log
+logs/
+*.hprof
+*.trace
+hs_err_pid*
+replay_pid*
+
+# Firebase emulator data and debug logs
+.firebase/
+firebase-debug.log
+firestore-debug.log
+database-debug.log
+ui-debug.log
+pubsub-debug.log
+emulator-data/
+
+# Lint and test reports outside build/
+lint-results*.html
+lint-results*.xml
+lint-baseline.xml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Keep the Gradle wrapper jar even though other build files are ignored
+!gradle/wrapper/gradle-wrapper.jar

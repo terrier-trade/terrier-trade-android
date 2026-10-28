@@ -1,0 +1,6 @@
+# Module build output
+/build
+/release
+
+# Firebase config is local to each developer (see README)
+google-services.json
