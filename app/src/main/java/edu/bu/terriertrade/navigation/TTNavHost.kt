@@ -4,13 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import edu.bu.terriertrade.ui.screens.chats.ChatsScreen
-import edu.bu.terriertrade.ui.screens.feed.FeedScreen
-import edu.bu.terriertrade.ui.screens.post.PostListingScreen
-import edu.bu.terriertrade.ui.screens.profile.ProfileScreen
-import edu.bu.terriertrade.ui.screens.skills.SkillsScreen
+import edu.bu.terriertrade.navigation.graphs.authScreens
+import edu.bu.terriertrade.navigation.graphs.chatScreens
+import edu.bu.terriertrade.navigation.graphs.listingScreens
+import edu.bu.terriertrade.navigation.graphs.profileScreens
 
+/**
+ * All screens, grouped by feature. Each group lives in its own file under navigation/graphs,
+ * so a feature branch only edits its own group and this file rarely changes.
+ */
 @Composable
 fun TTNavHost(
     navController: NavHostController,
@@ -22,14 +24,9 @@ fun TTNavHost(
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        composable(Routes.FEED) { FeedScreen() }
-        composable(Routes.POST) { PostListingScreen() }
-        composable(Routes.CHATS) { ChatsScreen() }
-        composable(Routes.PROFILE) { ProfileScreen() }
-        composable(Routes.FEED) { FeedScreen() }
-        composable(Routes.POST) { PostListingScreen() }
-        composable(Routes.SKILLS) { SkillsScreen() }
-        composable(Routes.CHATS) { ChatsScreen() }
-        composable(Routes.PROFILE) { ProfileScreen() }
+        authScreens(navController)
+        listingScreens(navController)
+        chatScreens(navController)
+        profileScreens(navController)
     }
 }
