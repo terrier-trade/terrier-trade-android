@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
 private val LightColors = lightColorScheme(
@@ -12,15 +13,16 @@ private val LightColors = lightColorScheme(
     onPrimary = Color.White,
     primaryContainer = ScarletLight,
     onPrimaryContainer = ScarletDark,
-    secondary = Ink,
+    secondary = ScarletDark,
     onSecondary = Color.White,
     background = Paper,
     onBackground = Ink,
-    surface = Paper,
+    surface = Card,
     onSurface = Ink,
     surfaceVariant = PaperDim,
     onSurfaceVariant = InkMuted,
     outline = Line,
+    outlineVariant = Line,
 )
 
 private val DarkColors = darkColorScheme(
@@ -28,26 +30,32 @@ private val DarkColors = darkColorScheme(
     onPrimary = Color(0xFF690000),
     primaryContainer = ScarletDark,
     onPrimaryContainer = ScarletLight,
-    secondary = NightText,
-    onSecondary = NightBg,
+    secondary = ScarletOnDark,
+    onSecondary = Color(0xFF690000),
     background = NightBg,
     onBackground = NightText,
     surface = NightSurface,
     onSurface = NightText,
     surfaceVariant = NightSurfaceHigh,
     onSurfaceVariant = NightMuted,
-    outline = Color(0xFF534341),
+    outline = NightLine,
+    outlineVariant = NightLine,
 )
 
+/** Dynamic color stays off so the app always looks BU red. */
 @Composable
 fun TerrierTradeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalTTExtendedColors provides if (darkTheme) DarkExtendedColors else LightExtendedColors,
+    ) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColors else LightColors,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
 }
