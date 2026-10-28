@@ -4,6 +4,7 @@ package edu.bu.terriertrade.navigation
 object Routes {
     const val FEED = "feed"
     const val POST = "post"
+    const val SKILLS = "skills"
     const val CHATS = "chats"
     const val PROFILE = "profile"
 }

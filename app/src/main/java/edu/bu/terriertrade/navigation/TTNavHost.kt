@@ -9,6 +9,7 @@ import edu.bu.terriertrade.ui.screens.chats.ChatsScreen
 import edu.bu.terriertrade.ui.screens.feed.FeedScreen
 import edu.bu.terriertrade.ui.screens.post.PostListingScreen
 import edu.bu.terriertrade.ui.screens.profile.ProfileScreen
+import edu.bu.terriertrade.ui.screens.skills.SkillsScreen
 
 @Composable
 fun TTNavHost(
@@ -23,6 +24,11 @@ fun TTNavHost(
     ) {
         composable(Routes.FEED) { FeedScreen() }
         composable(Routes.POST) { PostListingScreen() }
+        composable(Routes.CHATS) { ChatsScreen() }
+        composable(Routes.PROFILE) { ProfileScreen() }
+        composable(Routes.FEED) { FeedScreen() }
+        composable(Routes.POST) { PostListingScreen() }
+        composable(Routes.SKILLS) { SkillsScreen() }
         composable(Routes.CHATS) { ChatsScreen() }
         composable(Routes.PROFILE) { ProfileScreen() }
     }
