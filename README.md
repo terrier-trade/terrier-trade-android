@@ -49,9 +49,10 @@ Buying and selling at BU is spread across Facebook groups, Marketplace and group
 Requirements: the latest stable Android Studio, its bundled JDK, and an emulator or phone on Android 8.0 (API 26) or newer.
 
 1. In Android Studio choose **File > New > Project from Version Control** and paste `https://github.com/terrier-trade/terrier-trade-android`.
-2. Wait for Gradle sync to finish. If Android Studio asks for a JDK, pick the bundled one.
-3. Choose the `app` run configuration and press Run.
-4. Run the unit tests with `./gradlew test` (or right click `app/src/test` and choose Run Tests).
+2. Ask a teammate for `google-services.json` and put it in the `app` folder.
+3. Wait for Gradle sync to finish. If Android Studio asks for a JDK, pick the bundled one.
+4. Choose the `app` run configuration and press Run.
+5. Run the unit tests with `./gradlew test` (or right click `app/src/test` and choose Run Tests).
 
 The app currently runs on in-memory sample data, so no Firebase setup or API keys are needed yet.
 
