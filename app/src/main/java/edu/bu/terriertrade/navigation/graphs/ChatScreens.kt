@@ -12,7 +12,9 @@ import edu.bu.terriertrade.ui.screens.chats.ChatsScreen
 /** Chat list, a single chat with its deal, and notifications. */
 fun NavGraphBuilder.chatScreens(navController: NavHostController) {
     composable(Routes.CHATS) {
-        ChatsScreen()
+        ChatsScreen(
+            onOpenChat = { chatId -> navController.navigate(Routes.chat(chatId)) },
+        )
     }
     composable(
         route = Routes.CHAT,
