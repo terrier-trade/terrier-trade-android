@@ -6,7 +6,7 @@ data class Chat(
     val participantIds: List<String>,
     val deal: Deal? = null,
     val lastMessage: String = "",
-    val updatedAt: Long = 0L,
+    val updatedAt: Long = 0L
 ) {
     /** The other person in the chat. */
     fun partnerId(myId: String): String = participantIds.firstOrNull { it != myId } ?: myId
@@ -16,14 +16,14 @@ enum class MessageType {
     /** Normal message typed by a student. */
     TEXT,
 
-    /** Grey system line such as "You requested TI-84 calculator". */
+    /** Gray system line such as "You requested TI-84 calculator". */
     EVENT,
 
     /** A deal change waiting for accept or decline. Links to [Message.proposalId]. */
     SUGGESTION,
 
     /** Prompt to rate the other person after a finished deal. */
-    REVIEW_PROMPT,
+    REVIEW_PROMPT
 }
 
 data class Message(
