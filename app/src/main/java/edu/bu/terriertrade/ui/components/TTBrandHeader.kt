@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
-
+import edu.bu.terriertrade.ui.theme.TTTheme
 /**
  * Big red header with the crest, used on Welcome.
  * Draws behind the status bar, so the screen using it should not add top padding.
@@ -32,12 +32,12 @@ fun TTBrandHeader(
     eyebrow: String? = null,
     tagline: String? = null,
 ) {
-    val onRed = MaterialTheme.colorScheme.onPrimary
+    val onRed = TTTheme.colors.onHeader
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = MaterialTheme.colorScheme.primary,
+                color = TTTheme.colors.header,
                 shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
             )
             .windowInsetsPadding(WindowInsets.statusBars)
