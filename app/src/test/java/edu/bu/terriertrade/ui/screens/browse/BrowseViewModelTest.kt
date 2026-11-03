@@ -3,6 +3,7 @@ package edu.bu.terriertrade.ui.screens.browse
 import edu.bu.terriertrade.ui.model.ListingCategory
 import edu.bu.terriertrade.ui.model.ListingType
 import edu.bu.terriertrade.ui.model.ListingUi
+import edu.bu.terriertrade.ui.model.WantedPostUi
 import edu.bu.terriertrade.ui.model.SellerUi
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

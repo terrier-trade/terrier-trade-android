@@ -8,7 +8,10 @@ enum class ClassYear(val label: String) {
     GRAD("Grad"),
 }
 
-/** Everything the Sign up screen draws. Errors are null when the field is fine. */
+/**
+ * Everything the Sign up screen draws. Errors are null when the field is fine.
+ * submitError is for problems from Firebase, like an email that already has an account.
+ */
 data class SignUpUiState(
     val name: String = "",
     val email: String = "",
@@ -20,5 +23,6 @@ data class SignUpUiState(
     val passwordError: String? = null,
     val yearError: String? = null,
     val rulesError: String? = null,
+    val submitError: String? = null,
     val isSubmitting: Boolean = false,
 )

@@ -1,5 +1,6 @@
 package edu.bu.terriertrade.ui.screens.auth
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -19,17 +20,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.ui.components.TTBackButton
 import edu.bu.terriertrade.ui.components.TTBannerTone
 import edu.bu.terriertrade.ui.components.TTBottomActions
-import edu.bu.terriertrade.ui.components.TTCodeField
 import edu.bu.terriertrade.ui.components.TTErrorText
 import edu.bu.terriertrade.ui.components.TTIconCircle
 import edu.bu.terriertrade.ui.components.TTInfoBanner
@@ -41,28 +38,35 @@ import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 /** Stateful entry point used by navigation. Owns the ViewModel. */
 @Composable
 fun VerifyEmailRoute(
-    email: String,
     onBack: () -> Unit,
     onVerified: () -> Unit,
-    viewModel: VerifyEmailViewModel = viewModel(),
+    viewModel: VerifyEmailViewModel = viewModel(factory = VerifyEmailViewModel.Factory),
 ) {
+    val cancelAndGoBack = {
+        viewModel.cancel()
+        onBack()
+    }
+
+    // When the student comes back from their mail app, check quietly and move on if they tapped the link.
+    LifecycleResumeEffect(viewModel) {
+        viewModel.checkVerified(onVerified = onVerified, silent = true)
+        onPauseOrDispose { }
+    }
+    BackHandler(onBack = cancelAndGoBack)
+
     VerifyEmailScreen(
-        email = email,
         uiState = viewModel.uiState,
-        onCodeChange = viewModel::onCodeChange,
-        onVerify = { if (viewModel.verify()) onVerified() },
+        onCheck = { viewModel.checkVerified(onVerified = onVerified) },
         onResend = viewModel::resend,
-        onBack = onBack,
+        onBack = cancelAndGoBack,
     )
 }
 
 /** Stateless UI built from shared components. */
 @Composable
 fun VerifyEmailScreen(
-    email: String,
     uiState: VerifyEmailUiState,
-    onCodeChange: (String) -> Unit,
-    onVerify: () -> Unit,
+    onCheck: () -> Unit,
     onResend: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -95,32 +99,19 @@ fun VerifyEmailScreen(
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = buildAnnotatedString {
-                        append("We sent a ${VerifyEmailViewModel.CODE_LENGTH}-digit code to ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)) {
-                            append(email)
-                        }
-                        append(". It expires in 10 minutes.")
-                    },
+                    text = "We sent a link to your @bu.edu email. Tap it, then come back here. " +
+                            "It can take a minute, and BU mail sometimes puts it in Junk.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                 )
-                TTCodeField(
-                    code = uiState.code,
-                    onCodeChange = onCodeChange,
-                    length = VerifyEmailViewModel.CODE_LENGTH,
-                    isError = uiState.errorMessage != null,
-                    onDone = onVerify,
-                    modifier = Modifier.fillMaxWidth(),
-                )
                 TTErrorText(message = uiState.errorMessage)
-                TTInlineLink(prompt = "Didn't get it?", actionText = "Resend code", onClick = onResend)
                 if (uiState.infoMessage != null) {
                     Text(
                         text = uiState.infoMessage,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                     )
                 }
                 TTInfoBanner(
@@ -132,9 +123,15 @@ fun VerifyEmailScreen(
 
             TTBottomActions {
                 TTPrimaryButton(
-                    text = "Verify and continue",
-                    onClick = onVerify,
+                    text = "I've verified",
+                    onClick = onCheck,
+                    loading = uiState.isChecking,
                     modifier = Modifier.fillMaxWidth(),
+                )
+                TTInlineLink(
+                    prompt = "Didn't get it?",
+                    actionText = if (uiState.isResending) "Sending…" else "Resend email",
+                    onClick = onResend,
                 )
             }
         }
@@ -145,10 +142,17 @@ fun VerifyEmailScreen(
 @Composable
 private fun VerifyEmailScreenPreview() {
     TerrierTradeTheme {
+        VerifyEmailScreen(uiState = VerifyEmailUiState(), onCheck = {}, onResend = {}, onBack = {})
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun VerifyEmailScreenNotYetPreview() {
+    TerrierTradeTheme {
         VerifyEmailScreen(
-            email = "priya02@bu.edu",
-            uiState = VerifyEmailUiState(code = "4820"),
-            onCodeChange = {}, onVerify = {}, onResend = {}, onBack = {},
+            uiState = VerifyEmailUiState(errorMessage = AuthMessages.NOT_VERIFIED_YET),
+            onCheck = {}, onResend = {}, onBack = {},
         )
     }
 }

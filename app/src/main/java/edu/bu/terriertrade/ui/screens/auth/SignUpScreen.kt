@@ -20,6 +20,7 @@ import edu.bu.terriertrade.ui.components.TTBottomActions
 import edu.bu.terriertrade.ui.components.TTCheckboxRow
 import edu.bu.terriertrade.ui.components.TTChoiceChips
 import edu.bu.terriertrade.ui.components.TTEmailField
+import edu.bu.terriertrade.ui.components.TTErrorText
 import edu.bu.terriertrade.ui.components.TTInlineLink
 import edu.bu.terriertrade.ui.components.TTPasswordField
 import edu.bu.terriertrade.ui.components.TTPrimaryButton
@@ -32,9 +33,9 @@ import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 @Composable
 fun SignUpRoute(
     onBack: () -> Unit,
-    onCodeSent: (email: String) -> Unit,
+    onAccountCreated: () -> Unit,
     onSignIn: () -> Unit,
-    viewModel: SignUpViewModel = viewModel(),
+    viewModel: SignUpViewModel = viewModel(factory = SignUpViewModel.Factory),
 ) {
     SignUpScreen(
         uiState = viewModel.uiState,
@@ -43,9 +44,7 @@ fun SignUpRoute(
         onPasswordChange = viewModel::onPasswordChange,
         onYearSelect = viewModel::onYearSelect,
         onAgreeChange = viewModel::onAgreeChange,
-        onSubmit = {
-            if (viewModel.validate()) onCodeSent(viewModel.uiState.email.trim())
-        },
+        onSubmit = { viewModel.submit(onAccountCreated) },
         onBack = onBack,
         onSignIn = onSignIn,
     )
@@ -124,6 +123,7 @@ fun SignUpScreen(
             }
 
             TTBottomActions {
+                TTErrorText(message = uiState.submitError)
                 TTPrimaryButton(
                     text = "Send verification email",
                     onClick = onSubmit,
@@ -160,6 +160,7 @@ private fun SignUpScreenErrorsPreview() {
                 passwordError = "Use at least 8 characters",
                 yearError = "Pick your year",
                 rulesError = "Agree to the community rules to continue",
+                submitError = "There's already an account with this email. Sign in instead.",
             ),
             onNameChange = {}, onEmailChange = {}, onPasswordChange = {}, onYearSelect = {},
             onAgreeChange = {}, onSubmit = {}, onBack = {}, onSignIn = {},
