@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,9 +12,9 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import edu.bu.terriertrade.ui.theme.Spacing
 
 /**
- * Pick one option from a row of pill chips. Works with any type:
- * class year, condition, category, meetup place, ticket platform.
- * Chips wrap onto a new line on narrow phones.
+ * Pick one option from pill chips that wrap onto new lines. For forms:
+ * class year, condition, meetup place, ticket platform.
+ * For a single scrolling row (like Browse categories) use TTChipRow.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -43,15 +40,10 @@ fun <T> TTChoiceChips(
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             options.forEach { option ->
-                FilterChip(
+                TTSelectableChip(
+                    text = optionLabel(option),
                     selected = option == selected,
                     onClick = { onSelect(option) },
-                    label = { Text(optionLabel(option)) },
-                    shape = CircleShape,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
                 )
             }
         }
