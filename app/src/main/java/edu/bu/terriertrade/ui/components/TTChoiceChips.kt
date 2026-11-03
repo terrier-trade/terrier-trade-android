@@ -8,12 +8,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import edu.bu.terriertrade.ui.theme.Spacing
 
 /**
  * Pick one option from pill chips that wrap onto new lines. For forms:
  * class year, condition, meetup place, ticket platform.
+ * optionIcon is optional: give it to show an icon on each chip.
  * For a single scrolling row (like Browse categories) use TTChipRow.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -26,6 +28,7 @@ fun <T> TTChoiceChips(
     modifier: Modifier = Modifier,
     label: String? = null,
     errorMessage: String? = null,
+    optionIcon: ((T) -> ImageVector?)? = null,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
         if (label != null) {
@@ -44,6 +47,7 @@ fun <T> TTChoiceChips(
                     text = optionLabel(option),
                     selected = option == selected,
                     onClick = { onSelect(option) },
+                    leadingIcon = optionIcon?.invoke(option),
                 )
             }
         }
