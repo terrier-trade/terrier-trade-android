@@ -22,9 +22,12 @@ class VerifyEmailViewModel(
     var uiState by mutableStateOf(VerifyEmailUiState())
         private set
 
+    /** The screen checks every few seconds, so make sure we only move on once. */
+    private var movedOn = false
+
     /**
-     * Checks with Firebase. silent = true is for the automatic check when the student
-     * comes back to the app: it moves on if verified but shows no error if not.
+     * Checks with Firebase. silent = true is for the automatic checks while the screen is open:
+     * it moves on if verified but shows no error if not.
      */
     fun checkVerified(onVerified: () -> Unit, silent: Boolean = false) {
         if (uiState.isChecking) return
@@ -37,7 +40,10 @@ class VerifyEmailViewModel(
                 silent -> uiState
                 else -> uiState.copy(isChecking = false, errorMessage = AuthMessages.NOT_VERIFIED_YET)
             }
-            if (verified) onVerified()
+            if (verified && !movedOn) {
+                movedOn = true
+                onVerified()
+            }
         }
     }
 
@@ -60,6 +66,9 @@ class VerifyEmailViewModel(
     }
 
     companion object {
+        /** How often the Verify screen asks Firebase whether the link was tapped. */
+        const val AUTO_CHECK_MILLIS = 4_000L
+
         val Factory = viewModelFactory {
             initializer { VerifyEmailViewModel(appContainer.authRepository) }
         }

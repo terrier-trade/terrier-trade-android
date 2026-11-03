@@ -4,7 +4,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,30 +13,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.Book
-import androidx.compose.material.icons.outlined.Chair
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.PhotoCamera
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Publish
-import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sell
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -46,26 +33,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Condition
 import edu.bu.terriertrade.data.model.ListingType
-import edu.bu.terriertrade.ui.components.TTAddPhotoTile
+import edu.bu.terriertrade.data.model.PriceUnit
+import edu.bu.terriertrade.data.model.ServiceMode
 import edu.bu.terriertrade.ui.components.TTBannerTone
-import edu.bu.terriertrade.ui.components.TTChoiceChips
 import edu.bu.terriertrade.ui.components.TTErrorText
 import edu.bu.terriertrade.ui.components.TTInfoBanner
 import edu.bu.terriertrade.ui.components.TTOptionTile
-import edu.bu.terriertrade.ui.components.TTPhotoThumb
-import edu.bu.terriertrade.ui.components.TTPriceField
 import edu.bu.terriertrade.ui.components.TTPrimaryButton
-import edu.bu.terriertrade.ui.components.TTSecondaryButton
 import edu.bu.terriertrade.ui.components.TTSectionCard
-import edu.bu.terriertrade.ui.components.TTTextField
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -81,22 +62,28 @@ fun NewListingRoute(
         ActivityResultContracts.PickMultipleVisualMedia(NewListingViewModel.MAX_PHOTOS),
     ) { uris -> viewModel.onPhotosPicked(uris.map { it.toString() }) }
 
-    NewListingScreen(
-        uiState = viewModel.uiState,
+    val actions = NewListingActions(
         onTypeSelect = viewModel::onTypeSelect,
-        onAddPhoto = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-        onRemovePhoto = viewModel::onRemovePhoto,
-        onScanClick = viewModel::onScanClick,
         onTitleChange = viewModel::onTitleChange,
-        onAuthorChange = viewModel::onAuthorChange,
         onPriceChange = viewModel::onPriceChange,
+        onPriceUnitSelect = viewModel::onPriceUnitSelect,
         onDescriptionChange = viewModel::onDescriptionChange,
         onCategorySelect = viewModel::onCategorySelect,
-        onConditionSelect = viewModel::onConditionSelect,
         onMeetSpotSelect = viewModel::onMeetSpotSelect,
+        onAddPhoto = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+        onRemovePhoto = viewModel::onRemovePhoto,
+        onConditionSelect = viewModel::onConditionSelect,
+        onAuthorChange = viewModel::onAuthorChange,
+        onScanClick = viewModel::onScanClick,
+        onServiceModeSelect = viewModel::onServiceModeSelect,
+        onEventDateChange = viewModel::onEventDateChange,
+        onSectionChange = viewModel::onSectionChange,
+        onQuantityChange = viewModel::onQuantityChange,
+        onPlatformSelect = viewModel::onPlatformSelect,
         onPost = { viewModel.post(onPosted) },
-        modifier = modifier,
     )
+
+    NewListingScreen(uiState = viewModel.uiState, actions = actions, modifier = modifier)
 
     if (viewModel.uiState.showScanner) {
         IsbnScannerDialog(
@@ -107,24 +94,20 @@ fun NewListingRoute(
     }
 }
 
-/** Stateless UI built from shared components. The app header and bottom bar come from the app frame. */
+/** Stateless UI. The app header and bottom bar come from the app frame. Each post type has its own form file. */
 @Composable
 fun NewListingScreen(
     uiState: NewListingUiState,
-    onTypeSelect: (ListingType) -> Unit,
-    onAddPhoto: () -> Unit,
-    onRemovePhoto: (index: Int) -> Unit,
-    onScanClick: () -> Unit,
-    onTitleChange: (String) -> Unit,
-    onAuthorChange: (String) -> Unit,
-    onPriceChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-    onCategorySelect: (Category) -> Unit,
-    onConditionSelect: (Condition) -> Unit,
-    onMeetSpotSelect: (String) -> Unit,
-    onPost: () -> Unit,
+    actions: NewListingActions,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+
+    // After a post the form clears, so jump back to the top where the "Posted!" message is.
+    LaunchedEffect(uiState.postedMessage) {
+        if (uiState.postedMessage != null) scrollState.animateScrollTo(0)
+    }
+
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
@@ -132,11 +115,11 @@ fun NewListingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
-            NewListingTitle()
+            NewListingTitle(type = uiState.type)
 
             if (uiState.postedMessage != null) {
                 TTInfoBanner(
@@ -146,49 +129,33 @@ fun NewListingScreen(
                 )
             }
 
-            TypeSection(selected = uiState.type, onSelect = onTypeSelect)
+            TypeSection(selected = uiState.type, onSelect = actions.onTypeSelect)
 
-            if (uiState.isFormReady) {
-                PhotosSection(
-                    uiState = uiState,
-                    onAddPhoto = onAddPhoto,
-                    onRemovePhoto = onRemovePhoto,
-                    onScanClick = onScanClick,
-                )
-                BasicsSection(
-                    uiState = uiState,
-                    onTitleChange = onTitleChange,
-                    onAuthorChange = onAuthorChange,
-                    onPriceChange = onPriceChange,
-                    onDescriptionChange = onDescriptionChange,
-                )
-                DetailsSection(
-                    uiState = uiState,
-                    onCategorySelect = onCategorySelect,
-                    onConditionSelect = onConditionSelect,
-                    onMeetSpotSelect = onMeetSpotSelect,
-                )
-                TTInfoBanner(
-                    text = "No fees and no payments in the app. You get paid in person at the meetup.",
-                    icon = Icons.Outlined.Handshake,
-                )
-                TTErrorText(message = uiState.submitError)
-                TTPrimaryButton(
-                    text = "Post listing",
-                    onClick = onPost,
-                    loading = uiState.isPosting,
-                    leadingIcon = Icons.Outlined.Publish,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            } else {
-                TTInfoBanner(text = "${uiState.type.label} posts are coming soon. For now you can post an item.")
+            when (uiState.type) {
+                ListingType.ITEM -> ItemForm(uiState, actions)
+                ListingType.SERVICE -> ServiceForm(uiState, actions)
+                ListingType.TICKET -> TicketForm(uiState, actions)
+                ListingType.WANTED -> WantedForm(uiState, actions)
             }
+
+            TTInfoBanner(
+                text = "No fees and no payments in the app. You pay or get paid in person at the meetup.",
+                icon = Icons.Outlined.Handshake,
+            )
+            TTErrorText(message = uiState.submitError)
+            TTPrimaryButton(
+                text = uiState.postButtonText,
+                onClick = actions.onPost,
+                loading = uiState.isPosting,
+                leadingIcon = Icons.Outlined.Publish,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
 
 @Composable
-private fun NewListingTitle() {
+private fun NewListingTitle(type: ListingType) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.md),
@@ -203,12 +170,12 @@ private fun NewListingTitle() {
         }
         Column {
             Text(
-                text = "New listing".uppercase(),
+                text = type.screenTitle.uppercase(),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
-                text = "Takes about a minute",
+                text = type.screenSubtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -240,157 +207,12 @@ private fun TypeSection(selected: ListingType, onSelect: (ListingType) -> Unit) 
     }
 }
 
-@Composable
-private fun PhotosSection(
-    uiState: NewListingUiState,
-    onAddPhoto: () -> Unit,
-    onRemovePhoto: (Int) -> Unit,
-    onScanClick: () -> Unit,
-) {
-    TTSectionCard(title = "Photos", icon = Icons.Outlined.PhotoCamera) {
-        TTSecondaryButton(
-            text = when {
-                uiState.isLookingUpBook -> "Looking up book…"
-                uiState.isbn != null -> "Scan a different book"
-                else -> "Selling a textbook? Scan the barcode"
-            },
-            onClick = onScanClick,
-            loading = uiState.isLookingUpBook,
-            leadingIcon = Icons.Outlined.QrCodeScanner,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        if (uiState.scanMessage != null && !uiState.showScanner) {
-            TTInfoBanner(
-                text = uiState.scanMessage,
-                tone = if (uiState.scanFailed) TTBannerTone.Warning else TTBannerTone.Success,
-                icon = if (uiState.scanFailed) Icons.Outlined.ErrorOutline else Icons.AutoMirrored.Outlined.MenuBook,
-            )
-        }
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-        ) {
-            uiState.photos.forEachIndexed { index, uri ->
-                TTPhotoThumb(model = uri, onRemove = { onRemovePhoto(index) }, isCover = index == 0)
-            }
-            if (uiState.canAddPhoto) TTAddPhotoTile(onClick = onAddPhoto)
-        }
-        Text(
-            text = "Up to ${NewListingViewModel.MAX_PHOTOS}. The first one is the cover. Listings with a photo get more requests.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun BasicsSection(
-    uiState: NewListingUiState,
-    onTitleChange: (String) -> Unit,
-    onAuthorChange: (String) -> Unit,
-    onPriceChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-) {
-    TTSectionCard(title = "Basics", icon = Icons.Outlined.EditNote) {
-        TTTextField(
-            value = uiState.title,
-            onValueChange = onTitleChange,
-            label = "Title",
-            placeholder = "Desk chair, mini fridge, CS 330 notes…",
-            errorMessage = uiState.titleError,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Next,
-            ),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        if (uiState.isBook) {
-            TTTextField(
-                value = uiState.author,
-                onValueChange = onAuthorChange,
-                label = "Author / edition",
-                placeholder = "Cormen et al. · 4th edition",
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next,
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-        TTPriceField(
-            value = uiState.price,
-            onValueChange = onPriceChange,
-            errorMessage = uiState.priceError,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        TTTextField(
-            value = uiState.description,
-            onValueChange = onDescriptionChange,
-            label = "Description (optional)",
-            placeholder = "Size, age, any marks or missing parts",
-            helperText = "${uiState.description.length} / ${NewListingViewModel.MAX_DESCRIPTION_LENGTH}",
-            singleLine = false,
-            minLines = 3,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
-private fun DetailsSection(
-    uiState: NewListingUiState,
-    onCategorySelect: (Category) -> Unit,
-    onConditionSelect: (Condition) -> Unit,
-    onMeetSpotSelect: (String) -> Unit,
-) {
-    TTSectionCard(title = "Details", icon = Icons.Outlined.Tune) {
-        TTChoiceChips(
-            label = "Category",
-            options = NewListingViewModel.itemCategories,
-            selected = uiState.category,
-            onSelect = onCategorySelect,
-            optionLabel = { it.label },
-            optionIcon = { it.icon },
-            errorMessage = uiState.categoryError,
-        )
-        TTChoiceChips(
-            label = "Condition",
-            options = Condition.entries,
-            selected = uiState.condition,
-            onSelect = onConditionSelect,
-            optionLabel = { it.label },
-            errorMessage = uiState.conditionError,
-        )
-        TTChoiceChips(
-            label = "Meet at",
-            options = NewListingViewModel.itemMeetSpots,
-            selected = uiState.meetSpot,
-            onSelect = onMeetSpotSelect,
-            optionLabel = { it },
-            optionIcon = { Icons.Outlined.Place },
-            errorMessage = uiState.meetSpotError,
-        )
-    }
-}
-
 private val ListingType.icon: ImageVector
     get() = when (this) {
         ListingType.ITEM -> Icons.Outlined.Inventory2
         ListingType.SERVICE -> Icons.Outlined.School
         ListingType.TICKET -> Icons.Outlined.ConfirmationNumber
         ListingType.WANTED -> Icons.Outlined.Search
-    }
-
-private val Category.icon: ImageVector
-    get() = when (this) {
-        Category.BOOKS -> Icons.Outlined.Book
-        Category.FURNITURE -> Icons.Outlined.Chair
-        Category.TECH -> Icons.Outlined.Computer
-        Category.NOTES -> Icons.Outlined.Description
-        Category.TUTORING -> Icons.Outlined.School
-        Category.TICKETS -> Icons.Outlined.ConfirmationNumber
-        Category.OTHER -> Icons.Outlined.MoreHoriz
     }
 
 /** Short hint under each post type, matching the proposal. */
@@ -402,9 +224,25 @@ private val ListingType.hint: String
         ListingType.WANTED -> "Ask for something"
     }
 
+private val ListingType.screenTitle: String
+    get() = when (this) {
+        ListingType.ITEM -> "New listing"
+        ListingType.SERVICE -> "Offer a service"
+        ListingType.TICKET -> "Sell tickets"
+        ListingType.WANTED -> "Looking for"
+    }
+
+private val ListingType.screenSubtitle: String
+    get() = when (this) {
+        ListingType.ITEM -> "Takes about a minute"
+        ListingType.SERVICE -> "Tutoring, help, skills"
+        ListingType.TICKET -> "Only events with an official transfer"
+        ListingType.WANTED -> "Post a wanted note with your budget"
+    }
+
 @PreviewLightDark
 @Composable
-private fun NewListingScreenPreview() {
+private fun NewListingItemPreview() {
     TerrierTradeTheme {
         NewListingScreen(
             uiState = NewListingUiState(
@@ -414,16 +252,14 @@ private fun NewListingScreenPreview() {
                 condition = Condition.GOOD,
                 meetSpot = "West Campus",
             ),
-            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
-            onAuthorChange = {}, onPriceChange = {},
-            onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
+            actions = NewListingActions(),
         )
     }
 }
 
 @PreviewLightDark
 @Composable
-private fun NewListingScreenScannedBookPreview() {
+private fun NewListingScannedBookPreview() {
     TerrierTradeTheme {
         NewListingScreen(
             uiState = NewListingUiState(
@@ -433,16 +269,70 @@ private fun NewListingScreenScannedBookPreview() {
                 isbn = "9780262046305",
                 scanMessage = NewListingViewModel.SCAN_FILLED_MESSAGE,
             ),
-            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
-            onAuthorChange = {}, onPriceChange = {},
-            onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
+            actions = NewListingActions(),
         )
     }
 }
 
 @PreviewLightDark
 @Composable
-private fun NewListingScreenErrorsPreview() {
+private fun NewListingServicePreview() {
+    TerrierTradeTheme {
+        NewListingScreen(
+            uiState = NewListingUiState(
+                type = ListingType.SERVICE,
+                title = "CS 330 tutoring",
+                price = "20",
+                priceUnit = PriceUnit.PER_HOUR,
+                category = Category.TUTORING,
+                serviceMode = ServiceMode.EITHER,
+                meetSpot = "Mugar Library",
+            ),
+            actions = NewListingActions(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun NewListingTicketPreview() {
+    TerrierTradeTheme {
+        NewListingScreen(
+            uiState = NewListingUiState(
+                type = ListingType.TICKET,
+                title = "BU Hockey vs Boston College",
+                eventDateMillis = 1_794_700_800_000L,
+                section = "Student, 112",
+                quantity = 2,
+                price = "25",
+                category = Category.TICKETS,
+                platform = TicketPlatform.TICKETMASTER,
+            ),
+            actions = NewListingActions(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun NewListingWantedPreview() {
+    TerrierTradeTheme {
+        NewListingScreen(
+            uiState = NewListingUiState(
+                type = ListingType.WANTED,
+                title = "Math tutor for MA 124",
+                price = "25",
+                priceUnit = PriceUnit.PER_HOUR,
+                category = Category.TUTORING,
+            ),
+            actions = NewListingActions(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun NewListingErrorsPreview() {
     TerrierTradeTheme {
         NewListingScreen(
             uiState = NewListingUiState(
@@ -452,22 +342,7 @@ private fun NewListingScreenErrorsPreview() {
                 conditionError = "Pick the condition",
                 meetSpotError = "Pick where you'll meet",
             ),
-            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
-            onAuthorChange = {}, onPriceChange = {},
-            onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun NewListingScreenComingSoonPreview() {
-    TerrierTradeTheme {
-        NewListingScreen(
-            uiState = NewListingUiState(type = ListingType.SERVICE),
-            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
-            onAuthorChange = {}, onPriceChange = {},
-            onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
+            actions = NewListingActions(),
         )
     }
 }

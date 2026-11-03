@@ -70,4 +70,15 @@ class VerifyEmailViewModelTest {
 
         assertEquals(1, auth.signOutCalls)
     }
+    @Test
+    fun verified_movesOnOnlyOnce() {
+        auth.verified = true
+        var moves = 0
+
+        vm.checkVerified(onVerified = { moves++ }, silent = true)
+        vm.checkVerified(onVerified = { moves++ }, silent = true)
+        vm.checkVerified(onVerified = { moves++ })
+
+        assertEquals(1, moves)
+    }
 }

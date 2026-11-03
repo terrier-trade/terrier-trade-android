@@ -18,11 +18,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.ui.components.TTBackButton
 import edu.bu.terriertrade.ui.components.TTBannerTone
@@ -34,6 +39,7 @@ import edu.bu.terriertrade.ui.components.TTInlineLink
 import edu.bu.terriertrade.ui.components.TTPrimaryButton
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
+import kotlinx.coroutines.delay
 
 /** Stateful entry point used by navigation. Owns the ViewModel. */
 @Composable
@@ -47,10 +53,17 @@ fun VerifyEmailRoute(
         onBack()
     }
 
-    // When the student comes back from their mail app, check quietly and move on if they tapped the link.
-    LifecycleResumeEffect(viewModel) {
-        viewModel.checkVerified(onVerified = onVerified, silent = true)
-        onPauseOrDispose { }
+    // While this screen is on screen, quietly ask Firebase every few seconds whether the link was tapped.
+    // So it moves on by itself, whether the link was opened on this phone or on a laptop.
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val latestOnVerified by rememberUpdatedState(onVerified)
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (true) {
+                viewModel.checkVerified(onVerified = { latestOnVerified() }, silent = true)
+                delay(VerifyEmailViewModel.AUTO_CHECK_MILLIS)
+            }
+        }
     }
     BackHandler(onBack = cancelAndGoBack)
 
@@ -99,8 +112,8 @@ fun VerifyEmailScreen(
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = "We sent a link to your @bu.edu email. Tap it, then come back here. " +
-                            "It can take a minute, and BU mail sometimes puts it in Junk.",
+                    text = "We sent a link to your @bu.edu email. Tap it and this screen moves on by itself. " +
+                        "It can take a minute, and BU mail sometimes puts it in Junk.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
