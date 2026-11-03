@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.Chair
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -25,12 +26,14 @@ import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Publish
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sell
@@ -60,12 +63,13 @@ import edu.bu.terriertrade.ui.components.TTOptionTile
 import edu.bu.terriertrade.ui.components.TTPhotoThumb
 import edu.bu.terriertrade.ui.components.TTPriceField
 import edu.bu.terriertrade.ui.components.TTPrimaryButton
+import edu.bu.terriertrade.ui.components.TTSecondaryButton
 import edu.bu.terriertrade.ui.components.TTSectionCard
 import edu.bu.terriertrade.ui.components.TTTextField
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
-/** Stateful entry point used by navigation. Owns the ViewModel and the photo picker. */
+/** Stateful entry point used by navigation. Owns the ViewModel, the photo picker and the scanner. */
 @Composable
 fun NewListingRoute(
     onPosted: (listingId: String) -> Unit,
@@ -82,7 +86,9 @@ fun NewListingRoute(
         onTypeSelect = viewModel::onTypeSelect,
         onAddPhoto = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
         onRemovePhoto = viewModel::onRemovePhoto,
+        onScanClick = viewModel::onScanClick,
         onTitleChange = viewModel::onTitleChange,
+        onAuthorChange = viewModel::onAuthorChange,
         onPriceChange = viewModel::onPriceChange,
         onDescriptionChange = viewModel::onDescriptionChange,
         onCategorySelect = viewModel::onCategorySelect,
@@ -91,6 +97,14 @@ fun NewListingRoute(
         onPost = { viewModel.post(onPosted) },
         modifier = modifier,
     )
+
+    if (viewModel.uiState.showScanner) {
+        IsbnScannerDialog(
+            onIsbn = viewModel::onIsbnScanned,
+            onDismiss = viewModel::onScannerDismiss,
+            errorMessage = viewModel.uiState.scanMessage.takeIf { viewModel.uiState.scanFailed },
+        )
+    }
 }
 
 /** Stateless UI built from shared components. The app header and bottom bar come from the app frame. */
@@ -100,7 +114,9 @@ fun NewListingScreen(
     onTypeSelect: (ListingType) -> Unit,
     onAddPhoto: () -> Unit,
     onRemovePhoto: (index: Int) -> Unit,
+    onScanClick: () -> Unit,
     onTitleChange: (String) -> Unit,
+    onAuthorChange: (String) -> Unit,
     onPriceChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onCategorySelect: (Category) -> Unit,
@@ -134,14 +150,15 @@ fun NewListingScreen(
 
             if (uiState.isFormReady) {
                 PhotosSection(
-                    photos = uiState.photos,
-                    canAddPhoto = uiState.canAddPhoto,
+                    uiState = uiState,
                     onAddPhoto = onAddPhoto,
                     onRemovePhoto = onRemovePhoto,
+                    onScanClick = onScanClick,
                 )
                 BasicsSection(
                     uiState = uiState,
                     onTitleChange = onTitleChange,
+                    onAuthorChange = onAuthorChange,
                     onPriceChange = onPriceChange,
                     onDescriptionChange = onDescriptionChange,
                 )
@@ -225,20 +242,38 @@ private fun TypeSection(selected: ListingType, onSelect: (ListingType) -> Unit) 
 
 @Composable
 private fun PhotosSection(
-    photos: List<String>,
-    canAddPhoto: Boolean,
+    uiState: NewListingUiState,
     onAddPhoto: () -> Unit,
     onRemovePhoto: (Int) -> Unit,
+    onScanClick: () -> Unit,
 ) {
     TTSectionCard(title = "Photos", icon = Icons.Outlined.PhotoCamera) {
+        TTSecondaryButton(
+            text = when {
+                uiState.isLookingUpBook -> "Looking up book…"
+                uiState.isbn != null -> "Scan a different book"
+                else -> "Selling a textbook? Scan the barcode"
+            },
+            onClick = onScanClick,
+            loading = uiState.isLookingUpBook,
+            leadingIcon = Icons.Outlined.QrCodeScanner,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (uiState.scanMessage != null && !uiState.showScanner) {
+            TTInfoBanner(
+                text = uiState.scanMessage,
+                tone = if (uiState.scanFailed) TTBannerTone.Warning else TTBannerTone.Success,
+                icon = if (uiState.scanFailed) Icons.Outlined.ErrorOutline else Icons.AutoMirrored.Outlined.MenuBook,
+            )
+        }
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            photos.forEachIndexed { index, uri ->
+            uiState.photos.forEachIndexed { index, uri ->
                 TTPhotoThumb(model = uri, onRemove = { onRemovePhoto(index) }, isCover = index == 0)
             }
-            if (canAddPhoto) TTAddPhotoTile(onClick = onAddPhoto)
+            if (uiState.canAddPhoto) TTAddPhotoTile(onClick = onAddPhoto)
         }
         Text(
             text = "Up to ${NewListingViewModel.MAX_PHOTOS}. The first one is the cover. Listings with a photo get more requests.",
@@ -252,6 +287,7 @@ private fun PhotosSection(
 private fun BasicsSection(
     uiState: NewListingUiState,
     onTitleChange: (String) -> Unit,
+    onAuthorChange: (String) -> Unit,
     onPriceChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
 ) {
@@ -268,6 +304,19 @@ private fun BasicsSection(
             ),
             modifier = Modifier.fillMaxWidth(),
         )
+        if (uiState.isBook) {
+            TTTextField(
+                value = uiState.author,
+                onValueChange = onAuthorChange,
+                label = "Author / edition",
+                placeholder = "Cormen et al. · 4th edition",
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         TTPriceField(
             value = uiState.price,
             onValueChange = onPriceChange,
@@ -365,7 +414,27 @@ private fun NewListingScreenPreview() {
                 condition = Condition.GOOD,
                 meetSpot = "West Campus",
             ),
-            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onTitleChange = {}, onPriceChange = {},
+            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
+            onAuthorChange = {}, onPriceChange = {},
+            onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun NewListingScreenScannedBookPreview() {
+    TerrierTradeTheme {
+        NewListingScreen(
+            uiState = NewListingUiState(
+                title = "Introduction to Algorithms",
+                author = "Thomas H. Cormen, Charles E. Leiserson · 2022",
+                category = Category.BOOKS,
+                isbn = "9780262046305",
+                scanMessage = NewListingViewModel.SCAN_FILLED_MESSAGE,
+            ),
+            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
+            onAuthorChange = {}, onPriceChange = {},
             onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
         )
     }
@@ -383,7 +452,8 @@ private fun NewListingScreenErrorsPreview() {
                 conditionError = "Pick the condition",
                 meetSpotError = "Pick where you'll meet",
             ),
-            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onTitleChange = {}, onPriceChange = {},
+            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
+            onAuthorChange = {}, onPriceChange = {},
             onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
         )
     }
@@ -395,7 +465,8 @@ private fun NewListingScreenComingSoonPreview() {
     TerrierTradeTheme {
         NewListingScreen(
             uiState = NewListingUiState(type = ListingType.SERVICE),
-            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onTitleChange = {}, onPriceChange = {},
+            onTypeSelect = {}, onAddPhoto = {}, onRemovePhoto = {}, onScanClick = {}, onTitleChange = {},
+            onAuthorChange = {}, onPriceChange = {},
             onDescriptionChange = {}, onCategorySelect = {}, onConditionSelect = {}, onMeetSpotSelect = {}, onPost = {},
         )
     }

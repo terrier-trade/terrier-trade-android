@@ -12,6 +12,10 @@ data class NewListingUiState(
     val type: ListingType = ListingType.ITEM,
     val photos: List<String> = emptyList(),
     val title: String = "",
+    /** Only shown for books. Filled in from Open Library after a scan. */
+    val author: String = "",
+    /** Set after a successful textbook scan; saved on the listing. */
+    val isbn: String? = null,
     val price: String = "",
     val description: String = "",
     val category: Category? = null,
@@ -26,7 +30,14 @@ data class NewListingUiState(
     /** Shown at the top after a successful post, until the student starts a new one. */
     val postedMessage: String? = null,
     val isPosting: Boolean = false,
+    val showScanner: Boolean = false,
+    val isLookingUpBook: Boolean = false,
+    /** Green note after a scan filled in the book, or a warning when it couldn't. */
+    val scanMessage: String? = null,
+    val scanFailed: Boolean = false,
 ) {
+    val isBook: Boolean get() = category == Category.BOOKS
+
     val canAddPhoto: Boolean get() = photos.size < NewListingViewModel.MAX_PHOTOS
 
     /** This PR builds the Item form. Service, Ticket and Looking for come with #18. */

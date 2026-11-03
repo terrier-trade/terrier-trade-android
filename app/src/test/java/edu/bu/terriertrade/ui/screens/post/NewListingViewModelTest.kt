@@ -17,8 +17,9 @@ class NewListingViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repo = TestListingRepository()
+    private val books = TestBookLookup()
 
-    private fun filledIn() = NewListingViewModel(repo).apply {
+    private fun filledIn() = NewListingViewModel(repo, books).apply {
         onTitleChange("  Desk chair ")
         onPriceChange("40")
         onDescriptionChange("Adjustable height")
@@ -29,7 +30,7 @@ class NewListingViewModelTest {
 
     @Test
     fun emptyForm_showsEveryError() {
-        val vm = NewListingViewModel(repo)
+        val vm = NewListingViewModel(repo, books)
         assertFalse(vm.validate())
         with(vm.uiState) {
             assertEquals("Give your listing a title", titleError)
@@ -55,7 +56,7 @@ class NewListingViewModelTest {
 
     @Test
     fun editingAField_clearsItsError() {
-        val vm = NewListingViewModel(repo)
+        val vm = NewListingViewModel(repo, books)
         vm.validate()
         vm.onTitleChange("Desk chair")
         assertNull(vm.uiState.titleError)
@@ -63,7 +64,7 @@ class NewListingViewModelTest {
 
     @Test
     fun photos_capAtFive_andRemoveWorks() {
-        val vm = NewListingViewModel(repo)
+        val vm = NewListingViewModel(repo, books)
         vm.onPhotosPicked(listOf("a", "b", "c"))
         vm.onPhotosPicked(listOf("d", "e", "f", "g"))
         assertEquals(listOf("a", "b", "c", "d", "e"), vm.uiState.photos)
@@ -103,7 +104,7 @@ class NewListingViewModelTest {
 
     @Test
     fun post_invalidForm_doesNotSave() {
-        NewListingViewModel(repo).post { }
+        NewListingViewModel(repo, books).post { }
         assertEquals(0, repo.createCalls)
     }
 
@@ -127,5 +128,82 @@ class NewListingViewModelTest {
         vm.post { }
         assertFalse(vm.uiState.isFormReady)
         assertEquals(0, repo.createCalls)
+    }
+
+    @Test
+    fun scan_fillsInTheBook() {
+        val vm = NewListingViewModel(repo, books)
+        vm.onScanClick()
+        assertTrue(vm.uiState.showScanner)
+
+        vm.onIsbnScanned("978-0-262-04630-5")
+
+        with(vm.uiState) {
+            assertFalse(showScanner)
+            assertFalse(isLookingUpBook)
+            assertEquals("9780262046305", books.lastIsbn)
+            assertEquals("9780262046305", isbn)
+            assertEquals(Category.BOOKS, category)
+            assertEquals("Introduction to Algorithms", title)
+            assertEquals("Thomas H. Cormen, Charles E. Leiserson · 2022", author)
+            assertEquals(listOf("https://covers.openlibrary.org/b/id/1-M.jpg"), photos)
+            assertEquals(NewListingViewModel.SCAN_FILLED_MESSAGE, scanMessage)
+            assertFalse(scanFailed)
+        }
+    }
+
+    @Test
+    fun scan_invalidIsbn_staysOpenWithError() {
+        val vm = NewListingViewModel(repo, books)
+        vm.onScanClick()
+
+        vm.onIsbnScanned("12345")
+
+        assertTrue(vm.uiState.showScanner)
+        assertTrue(vm.uiState.scanFailed)
+        assertNull(books.lastIsbn)
+    }
+
+    @Test
+    fun scan_bookNotFound_keepsFormAndWarns() {
+        books.result = Result.failure(Exception("We couldn't find ISBN 9780262046305. Fill in the details yourself."))
+        val vm = NewListingViewModel(repo, books).apply { onTitleChange("My book") }
+
+        vm.onIsbnScanned("9780262046305")
+
+        with(vm.uiState) {
+            assertEquals("My book", title)
+            assertEquals(Category.BOOKS, category)
+            assertTrue(scanFailed)
+            assertEquals("We couldn't find ISBN 9780262046305. Fill in the details yourself.", scanMessage)
+        }
+    }
+
+    @Test
+    fun post_scannedBook_savesIsbnAndAuthor() {
+        val vm = NewListingViewModel(repo, books).apply {
+            onIsbnScanned("9780262046305")
+            onPriceChange("35")
+            onDescriptionChange("Highlighting in ch. 2")
+            onConditionSelect(Condition.GOOD)
+            onMeetSpotSelect("Mugar Library")
+        }
+
+        vm.post { }
+
+        val saved = repo.lastCreated!!
+        assertEquals("9780262046305", saved.isbn)
+        assertEquals(Category.BOOKS, saved.category)
+        assertEquals("By Thomas H. Cormen, Charles E. Leiserson · 2022\n\nHighlighting in ch. 2", saved.description)
+    }
+
+    @Test
+    fun post_notABook_doesNotSaveAuthorOrIsbn() {
+        val vm = filledIn()
+
+        vm.post { }
+
+        assertNull(repo.lastCreated!!.isbn)
+        assertEquals("Adjustable height", repo.lastCreated!!.description)
     }
 }
