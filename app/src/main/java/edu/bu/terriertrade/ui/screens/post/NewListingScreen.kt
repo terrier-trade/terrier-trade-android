@@ -17,13 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.ConfirmationNumber
-import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Handshake
-import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Publish
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -186,7 +180,7 @@ private fun NewListingTitle(type: ListingType) {
 /** The four post types from the proposal, as a 2 x 2 grid. */
 @Composable
 private fun TypeSection(selected: ListingType, onSelect: (ListingType) -> Unit) {
-    TTSectionCard(title = "What are you posting?", icon = Icons.Outlined.Dashboard) {
+    TTSectionCard(title = "What are you posting?") {
         listOf(
             listOf(ListingType.ITEM, ListingType.SERVICE),
             listOf(ListingType.TICKET, ListingType.WANTED),
@@ -194,7 +188,6 @@ private fun TypeSection(selected: ListingType, onSelect: (ListingType) -> Unit) 
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 row.forEach { type ->
                     TTOptionTile(
-                        icon = type.icon,
                         title = type.label,
                         subtitle = type.hint,
                         selected = type == selected,
@@ -207,19 +200,11 @@ private fun TypeSection(selected: ListingType, onSelect: (ListingType) -> Unit) 
     }
 }
 
-private val ListingType.icon: ImageVector
-    get() = when (this) {
-        ListingType.ITEM -> Icons.Outlined.Inventory2
-        ListingType.SERVICE -> Icons.Outlined.School
-        ListingType.TICKET -> Icons.Outlined.ConfirmationNumber
-        ListingType.WANTED -> Icons.Outlined.Search
-    }
-
 /** Short hint under each post type, matching the proposal. */
 private val ListingType.hint: String
     get() = when (this) {
         ListingType.ITEM -> "Books, furniture, notes"
-        ListingType.SERVICE -> "Tutoring, help"
+        ListingType.SERVICE -> "Tutoring help"
         ListingType.TICKET -> "BU events"
         ListingType.WANTED -> "Ask for something"
     }

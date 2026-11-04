@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.Chair
 import androidx.compose.material.icons.outlined.Computer
@@ -27,12 +28,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.PriceUnit
-import edu.bu.terriertrade.ui.components.TTAddPhotoTile
+import edu.bu.terriertrade.ui.components.TTActionTile
 import edu.bu.terriertrade.ui.components.TTBannerTone
 import edu.bu.terriertrade.ui.components.TTChoiceChips
 import edu.bu.terriertrade.ui.components.TTInfoBanner
 import edu.bu.terriertrade.ui.components.TTPhotoThumb
-import edu.bu.terriertrade.ui.components.TTSecondaryButton
 import edu.bu.terriertrade.ui.components.TTSectionCard
 import edu.bu.terriertrade.ui.components.TTTextField
 import edu.bu.terriertrade.ui.theme.Spacing
@@ -41,41 +41,69 @@ import edu.bu.terriertrade.ui.theme.Spacing
  * Pieces of the New listing form that more than one post type uses.
  */
 
-/** Photo thumbnails and the Add photo tile. Items also get the textbook scan button. */
+/**
+ * Photos, laid out like the proposal: "Add photo" and "Scan book" side by side, turning green
+ * once done, with the thumbnails underneath. Services only get "Add photo".
+ */
 @Composable
 internal fun PhotosSection(uiState: NewListingUiState, actions: NewListingActions, showScan: Boolean) {
     TTSectionCard(title = "Photos", icon = Icons.Outlined.PhotoCamera) {
-        if (showScan) {
-            TTSecondaryButton(
-                text = when {
-                    uiState.isLookingUpBook -> "Looking up book…"
-                    uiState.isbn != null -> "Scan a different book"
-                    else -> "Selling a textbook? Scan the barcode"
+        val photoCount = uiState.photos.size
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            TTActionTile(
+                icon = Icons.Outlined.AddAPhoto,
+                label = when (photoCount) {
+                    0 -> "Add photo"
+                    1 -> "Photo added"
+                    else -> "$photoCount photos added"
                 },
-                onClick = actions.onScanClick,
-                loading = uiState.isLookingUpBook,
-                leadingIcon = Icons.Outlined.QrCodeScanner,
-                modifier = Modifier.fillMaxWidth(),
+                onClick = actions.onAddPhoto,
+                done = photoCount > 0,
+                enabled = uiState.canAddPhoto,
+                modifier = Modifier.weight(1f),
             )
-            if (uiState.scanMessage != null && !uiState.showScanner) {
-                TTInfoBanner(
-                    text = uiState.scanMessage,
-                    tone = if (uiState.scanFailed) TTBannerTone.Warning else TTBannerTone.Success,
-                    icon = if (uiState.scanFailed) Icons.Outlined.ErrorOutline else Icons.AutoMirrored.Outlined.MenuBook,
+            if (showScan) {
+                TTActionTile(
+                    icon = Icons.Outlined.QrCodeScanner,
+                    label = when {
+                        uiState.isLookingUpBook -> "Looking up…"
+                        uiState.isbn != null -> "Book scanned"
+                        else -> "Scan book"
+                    },
+                    onClick = actions.onScanClick,
+                    done = uiState.isbn != null,
+                    loading = uiState.isLookingUpBook,
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-        ) {
-            uiState.photos.forEachIndexed { index, uri ->
-                TTPhotoThumb(model = uri, onRemove = { actions.onRemovePhoto(index) }, isCover = index == 0)
-            }
-            if (uiState.canAddPhoto) TTAddPhotoTile(onClick = actions.onAddPhoto)
+
+        if (uiState.scanMessage != null && !uiState.showScanner) {
+            TTInfoBanner(
+                text = uiState.scanMessage,
+                tone = if (uiState.scanFailed) TTBannerTone.Warning else TTBannerTone.Success,
+                icon = if (uiState.scanFailed) Icons.Outlined.ErrorOutline else Icons.AutoMirrored.Outlined.MenuBook,
+            )
         }
+
+        if (photoCount > 0) {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+            ) {
+                uiState.photos.forEachIndexed { index, uri ->
+                    TTPhotoThumb(model = uri, onRemove = { actions.onRemovePhoto(index) }, isCover = index == 0)
+                }
+            }
+        }
+
         Text(
-            text = "Up to ${NewListingViewModel.MAX_PHOTOS}. The first one is the cover. Listings with a photo get more requests.",
+            text = if (showScan) {
+                "Selling a textbook? Scan the barcode to fill in the title and author. " +
+                    "Up to ${NewListingViewModel.MAX_PHOTOS} photos, the first is the cover."
+            } else {
+                "Up to ${NewListingViewModel.MAX_PHOTOS} photos, the first is the cover."
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
