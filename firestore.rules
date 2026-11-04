@@ -24,6 +24,11 @@ service cloud.firestore {
       allow create, update: if isMe(uid);
     }
 
+    // Hearts: private to each student
+    match /users/{uid}/saved/{listingId} {
+      allow read, write: if isMe(uid);
+    }
+
     // Listings: any student can read, only the owner can create or edit
     match /listings/{listingId} {
       allow read: if isBuStudent();

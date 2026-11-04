@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Offline banner -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Scanning a textbook's barcode. Optional, so phones without a camera can still install. -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".TerrierTradeApplication"

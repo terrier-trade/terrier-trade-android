@@ -1,12 +1,12 @@
 package edu.bu.terriertrade.di
 
 import android.content.Context
-import edu.bu.terriertrade.data.fake.FakeAuthRepository
-import edu.bu.terriertrade.data.fake.FakeChatRepository
-import edu.bu.terriertrade.data.fake.FakeListingRepository
-import edu.bu.terriertrade.data.fake.FakeReviewRepository
-import edu.bu.terriertrade.data.fake.FakeSavedListingsRepository
-import edu.bu.terriertrade.data.fake.FakeUserRepository
+import edu.bu.terriertrade.data.firebase.FirebaseAuthRepository
+import edu.bu.terriertrade.data.firebase.FirestoreChatRepository
+import edu.bu.terriertrade.data.firebase.FirestoreListingRepository
+import edu.bu.terriertrade.data.firebase.FirestoreReviewRepository
+import edu.bu.terriertrade.data.firebase.FirestoreSavedListingsRepository
+import edu.bu.terriertrade.data.firebase.FirestoreUserRepository
 import edu.bu.terriertrade.data.network.NetworkMonitor
 import edu.bu.terriertrade.data.repository.AuthRepository
 import edu.bu.terriertrade.data.repository.ChatRepository
@@ -34,18 +34,19 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     // Each repository sits on its own line so two branches swapping
     // different repositories don't conflict.
+    // The Fake versions in data/fake are still there for tests and previews.
 
-    override val authRepository: AuthRepository = FakeAuthRepository()
+    override val authRepository: AuthRepository = FirebaseAuthRepository()
 
-    override val userRepository: UserRepository = FakeUserRepository()
+    override val userRepository: UserRepository = FirestoreUserRepository()
 
-    override val listingRepository: ListingRepository = FakeListingRepository(authRepository)
+    override val listingRepository: ListingRepository = FirestoreListingRepository()
 
-    override val savedListingsRepository: SavedListingsRepository = FakeSavedListingsRepository()
+    override val savedListingsRepository: SavedListingsRepository = FirestoreSavedListingsRepository()
 
-    override val chatRepository: ChatRepository = FakeChatRepository(authRepository)
+    override val chatRepository: ChatRepository = FirestoreChatRepository()
 
-    override val reviewRepository: ReviewRepository = FakeReviewRepository()
+    override val reviewRepository: ReviewRepository = FirestoreReviewRepository()
 
     override val networkMonitor: NetworkMonitor = NetworkMonitor(context.applicationContext)
 }

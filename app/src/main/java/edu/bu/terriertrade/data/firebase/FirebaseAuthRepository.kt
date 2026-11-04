@@ -13,6 +13,10 @@ import edu.bu.terriertrade.data.repository.AuthRepository
 import edu.bu.terriertrade.util.EmailCheck
 import edu.bu.terriertrade.util.EmailValidator
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,10 +40,15 @@ class FirebaseAuthRepository(
     private val _currentUserId = MutableStateFlow(auth.currentUser?.verifiedUid())
     override val currentUserId: StateFlow<String?> = _currentUserId.asStateFlow()
 
+    /** For small jobs that shouldn't block sign-in, like creating the profile. */
+    private val background = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     init {
         auth.addAuthStateListener { firebaseAuth ->
             _currentUserId.value = firebaseAuth.currentUser?.verifiedUid()
         }
+        // Already signed in from last time: make sure the profile exists too.
+        auth.currentUser?.takeIf { it.isEmailVerified }?.let { user -> background.launch { ensureProfile(user) } }
     }
 
     override suspend fun signIn(email: String, password: String): Result<Unit> = runAuth {

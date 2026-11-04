@@ -19,14 +19,18 @@ import edu.bu.terriertrade.navigation.TopLevelDestination
 import edu.bu.terriertrade.navigation.navigateToTopLevel
 import edu.bu.terriertrade.ui.components.TTAppHeader
 import edu.bu.terriertrade.ui.components.TTOfflineBanner
+import edu.bu.terriertrade.ui.screens.auth.SignedOutRedirect
+import edu.bu.terriertrade.ui.screens.auth.rememberStartRoute
 
 /**
  * Root of the app. Bottom-bar tabs get the shared header and the bottom bar.
  * Screens opened on top of a tab (detail, chat, edit profile) fill the screen.
+ * Signed-out students start on the sign-in screen, and signing out goes back there.
  */
 @Composable
 fun TerrierTradeApp() {
     val navController = rememberNavController()
+    SignedOutRedirect(navController)
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute }
@@ -59,6 +63,7 @@ fun TerrierTradeApp() {
             if (!isOnline) TTOfflineBanner()
             TTNavHost(
                 navController = navController,
+                startDestination = rememberStartRoute(),
                 modifier = Modifier.weight(1f),
             )
         }
