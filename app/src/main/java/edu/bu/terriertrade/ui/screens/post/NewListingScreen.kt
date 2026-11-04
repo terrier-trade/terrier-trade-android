@@ -17,7 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Publish
 import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.Icon
@@ -132,10 +131,6 @@ fun NewListingScreen(
                 ListingType.WANTED -> WantedForm(uiState, actions)
             }
 
-            TTInfoBanner(
-                text = "No fees and no payments in the app. You pay or get paid in person at the meetup.",
-                icon = Icons.Outlined.Handshake,
-            )
             TTErrorText(message = uiState.submitError)
             TTPrimaryButton(
                 text = uiState.postButtonText,

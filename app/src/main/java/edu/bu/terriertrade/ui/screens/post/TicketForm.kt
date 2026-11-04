@@ -1,6 +1,7 @@
 package edu.bu.terriertrade.ui.screens.post
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.PhoneIphone
-import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,10 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import edu.bu.terriertrade.ui.components.TTBannerTone
 import edu.bu.terriertrade.ui.components.TTChoiceChips
 import edu.bu.terriertrade.ui.components.TTDateTimeField
-import edu.bu.terriertrade.ui.components.TTInfoBanner
 import edu.bu.terriertrade.ui.components.TTPriceField
 import edu.bu.terriertrade.ui.components.TTQuantityStepper
 import edu.bu.terriertrade.ui.components.TTSectionCard
@@ -57,6 +55,7 @@ internal fun TicketForm(uiState: NewListingUiState, actions: NewListingActions) 
 
     TTSectionCard(title = "Tickets", icon = Icons.Outlined.ConfirmationNumber) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.md),
             verticalAlignment = Alignment.Top,
         ) {
@@ -66,14 +65,22 @@ internal fun TicketForm(uiState: NewListingUiState, actions: NewListingActions) 
                 label = "Quantity",
                 range = 1..NewListingViewModel.MAX_TICKETS,
             )
-            TTPriceField(
-                value = uiState.price,
-                onValueChange = actions.onPriceChange,
-                label = "Price each",
-                errorMessage = uiState.priceError,
-                helperText = null,
-                modifier = Modifier.weight(1f),
-            )
+            // Label above the box, like Quantity, so both boxes start at the same height.
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                Text(
+                    text = "Price each",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                TTPriceField(
+                    value = uiState.price,
+                    onValueChange = actions.onPriceChange,
+                    label = "",
+                    errorMessage = uiState.priceError,
+                    helperText = null,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 
@@ -92,12 +99,6 @@ internal fun TicketForm(uiState: NewListingUiState, actions: NewListingActions) 
         )
     }
 
-    TTInfoBanner(
-        text = "How the handoff works: 1. Agree on a deal in chat. 2. Send the tickets with the app's Transfer button. " +
-                "3. You tap Sent, they tap Received. Screenshots don't count as a transfer.",
-        tone = TTBannerTone.Warning,
-        icon = Icons.Outlined.SyncAlt,
-    )
     if (uiState.eventDateMillis != null) {
         Text(
             text = "This listing hides on its own after ${formatDateTime(uiState.eventDateMillis)}.",

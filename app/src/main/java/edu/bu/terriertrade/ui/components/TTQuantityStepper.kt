@@ -1,5 +1,7 @@
 package edu.bu.terriertrade.ui.components
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,12 +43,14 @@ fun TTQuantityStepper(
             Text(text = label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
         }
         Surface(
+            // Same height as a text field, so the two line up side by side.
+            modifier = Modifier.height(56.dp),
             shape = MaterialTheme.shapes.medium,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             color = MaterialTheme.colorScheme.surface,
         ) {
             Row(
-                modifier = Modifier.padding(Spacing.xs),
+                modifier = Modifier.fillMaxHeight().padding(horizontal = Spacing.xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 FilledTonalIconButton(

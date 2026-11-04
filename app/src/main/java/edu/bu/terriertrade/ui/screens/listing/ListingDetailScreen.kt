@@ -174,7 +174,6 @@ private fun ListingDetailContent(
         }
 
         TTBottomActions {
-            TTInfoBanner(text = "Pay in person when you meet. Terrier Trade never handles money.")
             if (requestSent) {
                 TTInfoBanner(
                     text = "Request sent. A chat opens once ${listing.seller.name} accepts.",
