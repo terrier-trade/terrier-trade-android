@@ -30,6 +30,7 @@ class AuthError(message: String) : Exception(message)
  */
 class FirebaseAuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val profiles: FirestoreUserRepository = FirestoreUserRepository(),
 ) : AuthRepository {
 
     private val _currentUserId = MutableStateFlow(auth.currentUser?.verifiedUid())
@@ -43,6 +44,7 @@ class FirebaseAuthRepository(
 
     override suspend fun signIn(email: String, password: String): Result<Unit> = runAuth {
         auth.signInWithEmailAndPassword(email.trim(), password).await()
+        auth.currentUser?.takeIf { it.isEmailVerified }?.let { ensureProfile(it) }
     }
 
     override suspend fun signUp(name: String, email: String, password: String): Result<Unit> = runAuth {
@@ -71,6 +73,7 @@ class FirebaseAuthRepository(
             val fresh = auth.currentUser ?: return false
             if (fresh.isEmailVerified) {
                 fresh.getIdToken(true).await()
+                ensureProfile(fresh)
                 _currentUserId.value = fresh.uid
             }
             fresh.isEmailVerified
@@ -86,6 +89,21 @@ class FirebaseAuthRepository(
     }
 
     private fun FirebaseUser.verifiedUid(): String? = uid.takeIf { isEmailVerified }
+
+    /**
+     * Creates users/{uid} the first time a verified student gets in, so their name shows on their
+     * listings and Profile. It can't be made at sign-up: firestore.rules only allow verified accounts.
+     * A failure here never blocks signing in; the next sign-in tries again.
+     */
+    private suspend fun ensureProfile(user: FirebaseUser) {
+        try {
+            profiles.ensureProfile(user.uid, user.displayName.orEmpty())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            android.util.Log.w("FirebaseAuth", "Couldn't create the profile yet", e)
+        }
+    }
 
     /** Runs a Firebase call and turns any failure into an AuthError with a friendly message. */
     private suspend fun runAuth(block: suspend () -> Unit): Result<Unit> =
