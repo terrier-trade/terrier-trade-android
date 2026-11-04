@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.ui.screens.PlaceholderScreen
+import edu.bu.terriertrade.ui.screens.chat.ChatScreen
 import edu.bu.terriertrade.ui.screens.chats.ChatsScreen
 
 /** Chat list, a single chat with its deal, and notifications. */
@@ -19,12 +20,11 @@ fun NavGraphBuilder.chatScreens(navController: NavHostController) {
     composable(
         route = Routes.CHAT,
         arguments = listOf(navArgument(Routes.ARG_CHAT_ID) { type = NavType.StringType }),
-    ) { entry ->
-        val chatId = entry.arguments?.getString(Routes.ARG_CHAT_ID).orEmpty()
-        PlaceholderScreen(
-            title = "Chat",
-            message = "Messages and the deal for chat $chatId will show here.",
+    ) {
+        ChatScreen(
             onBack = { navController.popBackStack() },
+            onOpenProfile = { userId -> navController.navigate(Routes.userProfile(userId)) },
+            onOpenDeal = { /* The deal sheet comes with the deal window branch */ },
         )
     }
     composable(Routes.NOTIFICATIONS) {
