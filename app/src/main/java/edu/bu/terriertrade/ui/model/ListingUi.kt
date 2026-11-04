@@ -25,6 +25,8 @@ data class SellerUi(
     val rating: String,
     val tradeCount: Int,
     val isVerified: Boolean = true,
+    /** Their user id, so tapping them can open their profile. Blank in previews. */
+    val id: String = "",
 )
 
 /**

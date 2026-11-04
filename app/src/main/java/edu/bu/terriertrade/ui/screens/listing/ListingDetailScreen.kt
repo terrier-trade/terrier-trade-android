@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -20,9 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import edu.bu.terriertrade.ui.components.TTBackButton
 import edu.bu.terriertrade.ui.components.TTBannerTone
 import edu.bu.terriertrade.ui.components.TTBottomActions
@@ -40,22 +43,22 @@ import edu.bu.terriertrade.ui.model.ListingUi
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 import edu.bu.terriertrade.ui.model.SampleData
-import androidx.compose.foundation.layout.height
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
 
 /** Stateful entry point for navigation. Loads the listing for [listingId]. */
 @Composable
 fun ListingDetailRoute(
     listingId: String,
     onBack: () -> Unit,
-    viewModel: ListingDetailViewModel = viewModel(factory = ListingDetailViewModel.Factory),) {
+    onSellerClick: ((sellerId: String) -> Unit)? = null,
+    viewModel: ListingDetailViewModel = viewModel(factory = ListingDetailViewModel.Factory),
+) {
     LaunchedEffect(listingId) { viewModel.load(listingId) }
     ListingDetailScreen(
         uiState = viewModel.uiState,
         onBack = onBack,
         onToggleFavorite = viewModel::onToggleFavorite,
         onRequest = viewModel::onRequest,
+        onSellerClick = onSellerClick,
     )
 }
 
@@ -67,6 +70,7 @@ fun ListingDetailScreen(
     onToggleFavorite: () -> Unit,
     onRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    onSellerClick: ((String) -> Unit)? = null,
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -94,6 +98,7 @@ fun ListingDetailScreen(
                 onBack = onBack,
                 onToggleFavorite = onToggleFavorite,
                 onRequest = onRequest,
+                onSellerClick = onSellerClick,
             )
         }
     }
@@ -107,6 +112,7 @@ private fun ListingDetailContent(
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onRequest: () -> Unit,
+    onSellerClick: ((String) -> Unit)?,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -152,7 +158,13 @@ private fun ListingDetailContent(
                 TTFactGrid(
                     facts = listOf("Condition" to listing.condition, "Meet near" to listing.meetSpot) + listing.details,
                 )
-                TTSellerRow(seller = listing.seller)
+                TTSellerRow(
+                    seller = listing.seller,
+                    // Tapping the seller opens their profile, once we know who they are.
+                    onClick = onSellerClick
+                        ?.takeIf { listing.seller.id.isNotBlank() }
+                        ?.let { open -> { open(listing.seller.id) } },
+                )
                 Text(
                     text = listing.description,
                     style = MaterialTheme.typography.bodyLarge,

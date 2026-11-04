@@ -48,7 +48,7 @@ fun Listing.toListingUi(
         postedAgo = TimeFormat.ago(createdAt, nowMillis, zone),
         condition = shortLine,
         description = description,
-        seller = owner.toSellerUi(),
+        seller = owner.toSellerUi().copy(id = ownerId),
         details = details,
         photoUrl = photoUrls.firstOrNull(),
         price = price,
