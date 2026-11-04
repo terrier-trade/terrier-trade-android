@@ -75,4 +75,35 @@ class ListingMappersTest {
         assertEquals("Maya Rao", note.postedBy)
         assertEquals("8h ago", note.postedAgo)
     }
+
+    @Test
+    fun tutoringService_isASkillSwap_withNoPrice() {
+        val ui = Listing(
+            id = "l4", ownerId = "nina", type = DataListingType.SERVICE, title = "CS 330 tutoring", price = 20,
+            priceUnit = PriceUnit.PER_HOUR, category = Category.TUTORING, createdAt = now,
+        ).toListingUi(maya, now, utc)!!
+
+        assertEquals("Skill swap", ui.priceLabel)
+        assertEquals("Need: CS 511 tutoring", ui.condition)
+    }
+
+    @Test
+    fun tutoringRequest_showsTheSwap_notABudget() {
+        val note = Listing(
+            id = "l10", ownerId = "maya", type = DataListingType.WANTED, title = "Math tutor for MA 124", price = 25,
+            priceUnit = PriceUnit.PER_HOUR, category = Category.TUTORING, createdAt = now,
+        ).toWantedPostUi(maya, now, utc)
+
+        assertEquals("Swap for: CS 511 tutoring", note.budgetLabel)
+    }
+
+    @Test
+    fun nonTutoring_keepsItsPrice() {
+        val note = Listing(
+            id = "l6", ownerId = "sam", type = DataListingType.WANTED, title = "CS 501 textbook", price = 30,
+            category = Category.BOOKS, createdAt = now,
+        ).toWantedPostUi(maya, now, utc)
+
+        assertEquals("Up to $30", note.budgetLabel)
+    }
 }
