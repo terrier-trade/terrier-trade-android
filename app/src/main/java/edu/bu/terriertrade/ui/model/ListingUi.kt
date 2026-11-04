@@ -15,6 +15,7 @@ enum class ListingCategory(val label: String) {
     TICKETS("Tickets"),
     NOTES("Notes"),
     TECH("Tech"),
+    OTHER("Other"),
 }
 
 /** The person selling a listing, ready to display. */
@@ -42,4 +43,6 @@ data class ListingUi(
     val description: String,
     val seller: SellerUi,
     val details: List<Pair<String, String>> = emptyList(),
+    /** Cover photo URL, or null to show the placeholder. */
+    val photoUrl: String? = null,
 )

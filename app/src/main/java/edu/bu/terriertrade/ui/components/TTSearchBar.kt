@@ -33,6 +33,7 @@ fun TTSearchBar(
     placeholder: String = "Search books, tutoring, tickets",
     onSearch: () -> Unit = {},
     onFilterClick: (() -> Unit)? = null,
+    outlined: Boolean = false,
 ) {
     val colors = MaterialTheme.colorScheme
     OutlinedTextField(
@@ -70,8 +71,7 @@ fun TTSearchBar(
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = colors.surface,
             unfocusedContainerColor = colors.surface,
-            unfocusedBorderColor = Color.Transparent,
-            focusedBorderColor = colors.primary,
+            unfocusedBorderColor = if (outlined) colors.outlineVariant else Color.Transparent,            focusedBorderColor = colors.primary,
             unfocusedPlaceholderColor = colors.onSurfaceVariant,
             focusedPlaceholderColor = colors.onSurfaceVariant,
         ),

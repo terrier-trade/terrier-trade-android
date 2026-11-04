@@ -40,14 +40,16 @@ import edu.bu.terriertrade.ui.model.ListingUi
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 import edu.bu.terriertrade.ui.model.SampleData
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 
 /** Stateful entry point for navigation. Loads the listing for [listingId]. */
 @Composable
 fun ListingDetailRoute(
     listingId: String,
     onBack: () -> Unit,
-    viewModel: ListingDetailViewModel = viewModel(),
-) {
+    viewModel: ListingDetailViewModel = viewModel(factory = ListingDetailViewModel.Factory),) {
     LaunchedEffect(listingId) { viewModel.load(listingId) }
     ListingDetailScreen(
         uiState = viewModel.uiState,
@@ -113,7 +115,18 @@ private fun ListingDetailContent(
                 .verticalScroll(rememberScrollState()),
         ) {
             Box {
-                TTPhotoPlaceholder(label = "Seller's photo", height = 280.dp)
+                if (listing.photoUrl != null) {
+                    AsyncImage(
+                        model = listing.photoUrl,
+                        contentDescription = listing.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(280.dp),
+                    )
+                } else {
+                    TTPhotoPlaceholder(label = "No photo yet", height = 280.dp)
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

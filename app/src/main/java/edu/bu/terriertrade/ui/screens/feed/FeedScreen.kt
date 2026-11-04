@@ -1,14 +1,35 @@
 package edu.bu.terriertrade.ui.screens.feed
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import edu.bu.terriertrade.ui.components.TTEmptyState
+import edu.bu.terriertrade.ui.screens.browse.BrowseRoute
+import edu.bu.terriertrade.ui.screens.listing.ListingDetailRoute
 
+/**
+ * The Browse tab. Navigation already calls this, so the real feed shows without touching navigation.
+ * Tapping a listing opens its detail right here for now.
+ * TODO(nav): navigation can call BrowseRoute directly and open Routes.listingDetail(id),
+ * then this file can be deleted.
+ */
 @Composable
 fun FeedScreen(modifier: Modifier = Modifier) {
-    TTEmptyState(
-        title = "Listings coming soon",
-        message = "Items posted by BU students will show up here.",
-        modifier = modifier,
-    )
+    var openListingId by rememberSaveable { mutableStateOf<String?>(null) }
+    val openId = openListingId
+
+    if (openId == null) {
+        // The app frame already draws the red header on this tab, so Browse leaves it out.
+        BrowseRoute(
+            onListingClick = { openListingId = it },
+            showAppHeader = false,
+            modifier = modifier,
+        )
+    } else {
+        BackHandler { openListingId = null }
+        ListingDetailRoute(listingId = openId, onBack = { openListingId = null })
+    }
 }

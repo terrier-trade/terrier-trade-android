@@ -13,6 +13,7 @@ enum class BrowseFilter(val label: String) {
     LOOKING_FOR("Looking for"),
 }
 
+/** Everything the Browse screen draws. listings and wanted are already filtered. */
 data class BrowseUiState(
     val query: String = "",
     val category: ListingCategory? = null,
@@ -21,6 +22,8 @@ data class BrowseUiState(
     val wanted: List<WantedPostUi> = emptyList(),
     val favoriteIds: Set<String> = emptySet(),
     val requestedIds: Set<String> = emptySet(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
 ) {
     /** The sideways strip of notes only shows on the unfiltered feed. */
     val showWantedStrip: Boolean
@@ -29,4 +32,8 @@ data class BrowseUiState(
     /** "Looking for" chip: show the notes as a full list instead of listings. */
     val showWantedList: Boolean
         get() = filter == BrowseFilter.LOOKING_FOR
+
+    /** Back clears these first, before leaving Browse. */
+    val hasActiveFilters: Boolean
+        get() = query.isNotBlank() || category != null || filter != BrowseFilter.ALL
 }
