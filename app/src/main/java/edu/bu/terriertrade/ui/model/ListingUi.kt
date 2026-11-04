@@ -45,4 +45,10 @@ data class ListingUi(
     val details: List<Pair<String, String>> = emptyList(),
     /** Cover photo URL, or null to show the placeholder. */
     val photoUrl: String? = null,
+    // Raw values for sorting and filtering. The labels above are what the screen shows.
+    val price: Int = 0,
+    val createdAt: Long = 0L,
+    val sellerRating: Double = 0.0,
+    /** 0 = New, 1 = Like new, 2 = Good, 3 = Fair. Null for services and tickets. */
+    val conditionRank: Int? = null,
 )

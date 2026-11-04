@@ -24,10 +24,17 @@ data class BrowseUiState(
     val requestedIds: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    /** What's applied to the feed. */
+    val filters: BrowseFilters = BrowseFilters(),
+    /** The Filters sheet edits a copy, so the feed only changes when "Show results" is tapped. */
+    val draftFilters: BrowseFilters = BrowseFilters(),
+    val showFilterSheet: Boolean = false,
+    /** How many listings the sheet's current choices would show. */
+    val draftResultCount: Int = 0,
 ) {
     /** The sideways strip of notes only shows on the unfiltered feed. */
     val showWantedStrip: Boolean
-        get() = filter == BrowseFilter.ALL && query.isBlank() && category == null && wanted.isNotEmpty()
+        get() = filter == BrowseFilter.ALL && query.isBlank() && category == null && filters.isDefault && wanted.isNotEmpty()
 
     /** "Looking for" chip: show the notes as a full list instead of listings. */
     val showWantedList: Boolean
@@ -35,5 +42,5 @@ data class BrowseUiState(
 
     /** Back clears these first, before leaving Browse. */
     val hasActiveFilters: Boolean
-        get() = query.isNotBlank() || category != null || filter != BrowseFilter.ALL
+        get() = query.isNotBlank() || category != null || filter != BrowseFilter.ALL || !filters.isDefault
 }

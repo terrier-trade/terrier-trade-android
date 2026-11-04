@@ -87,8 +87,34 @@ class BrowseViewModel(
     fun onFilterSelect(filter: BrowseFilter) =
         update { copy(filter = filter, category = if (filter == BrowseFilter.ALL) null else category) }
 
-    fun clearFilters() = update { copy(query = "", category = null, filter = BrowseFilter.ALL) }
+    fun clearFilters() = update {
+        copy(query = "", category = null, filter = BrowseFilter.ALL, filters = BrowseFilters(), draftFilters = BrowseFilters())
+    }
 
+    // Filters sheet
+
+    fun onOpenFilters() {
+        uiState = uiState.copy(showFilterSheet = true, draftFilters = uiState.filters)
+        updateDraftCount()
+    }
+
+    fun onDraftFiltersChange(filters: BrowseFilters) {
+        uiState = uiState.copy(draftFilters = filters)
+        updateDraftCount()
+    }
+
+    fun onResetDraftFilters() = onDraftFiltersChange(BrowseFilters())
+
+    fun onApplyFilters() = update { copy(filters = draftFilters, showFilterSheet = false) }
+
+    fun onDismissFilters() {
+        uiState = uiState.copy(showFilterSheet = false)
+    }
+
+    private fun updateDraftCount() {
+        val preview = uiState.copy(filters = uiState.draftFilters)
+        uiState = uiState.copy(draftResultCount = filterListings(allListings, preview).size)
+    }
     /** Saved in SavedListingsRepository, so the heart is the same on every screen. */
     fun onToggleFavorite(listingId: String) {
         viewModelScope.launch { savedRepository.toggleSaved(listingId) }
@@ -139,11 +165,13 @@ class BrowseViewModel(
         fun filterListings(listings: List<ListingUi>, state: BrowseUiState): List<ListingUi> {
             if (state.filter == BrowseFilter.LOOKING_FOR) return emptyList()
             val text = state.query.trim()
-            return listings.filter { listing ->
+            val matching = listings.filter { listing ->
                 matchesType(listing.type, state.filter) &&
-                    (state.category == null || listing.category == state.category) &&
-                    (text.isEmpty() || listing.title.contains(text, ignoreCase = true))
+                        (state.category == null || listing.category == state.category) &&
+                        (text.isEmpty() || listing.title.contains(text, ignoreCase = true)) &&
+                        state.filters.matches(listing)
             }
+            return state.filters.sort(matching)
         }
 
         fun filterWanted(wanted: List<WantedPostUi>, query: String): List<WantedPostUi> {

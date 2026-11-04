@@ -51,6 +51,10 @@ fun Listing.toListingUi(
         seller = owner.toSellerUi(),
         details = details,
         photoUrl = photoUrls.firstOrNull(),
+        price = price,
+        createdAt = createdAt,
+        sellerRating = owner?.rating ?: 0.0,
+        conditionRank = condition?.ordinal,
     )
 }
 

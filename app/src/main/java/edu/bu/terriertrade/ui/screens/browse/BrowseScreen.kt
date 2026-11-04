@@ -68,9 +68,22 @@ fun BrowseRoute(
         onHelpClick = onHelpClick,
         onNotificationsClick = onNotificationsClick,
         onRetry = viewModel::load,
+        onFilterClick = viewModel::onOpenFilters,
         showAppHeader = showAppHeader,
         modifier = modifier,
     )
+
+    val state = viewModel.uiState
+    if (state.showFilterSheet) {
+        BrowseFilterSheet(
+            filters = state.draftFilters,
+            resultCount = state.draftResultCount,
+            onFiltersChange = viewModel::onDraftFiltersChange,
+            onReset = viewModel::onResetDraftFilters,
+            onApply = viewModel::onApplyFilters,
+            onDismiss = viewModel::onDismissFilters,
+        )
+    }
 }
 
 /** Stateless UI matching the proposal's Browse screen. */
@@ -88,6 +101,7 @@ fun BrowseScreen(
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
     showAppHeader: Boolean = true,
+    onFilterClick: () -> Unit = {},
 ) {
     Surface(
         // Inside the app frame, slide up behind its header so our red search block joins it.
@@ -99,6 +113,7 @@ fun BrowseScreen(
                 query = uiState.query,
                 onQueryChange = onQueryChange,
                 onNotificationsClick = onNotificationsClick,
+                onFilterClick = onFilterClick,
                 showAppHeader = showAppHeader,
             )
 
@@ -212,14 +227,23 @@ private fun BrowseFeed(
             }
         } else {
             item {
-                TTSectionHeader(title = "Fresh listings", trailingText = "Newest first", modifier = sidePadding)
-            }
+                TTSectionHeader(
+                    title = "Fresh listings",
+                    trailingText = uiState.filters.let { f ->
+                        if (f.activeCount == 0) f.sort.headerText
+                        else "${f.sort.headerText} · ${f.activeCount} filter${if (f.activeCount == 1) "" else "s"}"
+                    },
+                    modifier = sidePadding,
+                )            }
             if (listings.isEmpty()) {
                 item {
                     TTEmptyState(
                         title = "Nothing matches yet",
-                        message = "Try another word, or tap the category again to clear it.",
-                    )
+                        message = if (uiState.filters.isDefault) {
+                            "Try another word, or tap the category again to clear it."
+                        } else {
+                            "Try fewer filters. Tap the filter button to change them."
+                        },                    )
                 }
             }
             items(listings) { listing ->
@@ -248,6 +272,7 @@ private fun BrowseHeader(
     query: String,
     onQueryChange: (String) -> Unit,
     onNotificationsClick: () -> Unit,
+    onFilterClick: () -> Unit,
     showAppHeader: Boolean,
 ) {
     if (showAppHeader) {
@@ -263,6 +288,7 @@ private fun BrowseHeader(
             TTSearchBar(
                 query = query,
                 onQueryChange = onQueryChange,
+                onFilterClick = onFilterClick,
                 modifier = Modifier.padding(start = Spacing.lg, end = Spacing.lg, bottom = Spacing.lg),
             )
         }
@@ -277,9 +303,8 @@ private fun BrowseHeader(
                 )
                 .padding(start = Spacing.lg, end = Spacing.lg, top = TTAppHeaderCornerOverlap, bottom = Spacing.lg),
         ) {
-            TTSearchBar(query = query, onQueryChange = onQueryChange)
-        }
-    }
+            TTSearchBar(query = query, onQueryChange = onQueryChange, onFilterClick = onFilterClick)
+        }    }
 }
 
 @PreviewLightDark
