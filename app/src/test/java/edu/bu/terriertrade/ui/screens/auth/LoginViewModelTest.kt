@@ -82,4 +82,49 @@ class LoginViewModelTest {
 
         assertNull(vm.uiState.submitError)
     }
+
+    @Test
+    fun forgotPassword_sendsResetToTheBuEmail() {
+        val reset = TestPasswordReset()
+        val vm = LoginViewModel(auth, reset).apply { onEmailChange("priya02@bu.edu ") }
+
+        vm.onForgotPassword()
+
+        assertEquals(listOf("priya02@bu.edu"), reset.sentTo)
+        assertEquals(AuthMessages.resetSent("priya02@bu.edu"), vm.uiState.infoMessage)
+        assertFalse(vm.uiState.isSendingReset)
+    }
+
+    @Test
+    fun forgotPassword_withoutEmail_asksForItFirst() {
+        val reset = TestPasswordReset()
+        val vm = LoginViewModel(auth, reset)
+
+        vm.onForgotPassword()
+
+        assertEquals(AuthMessages.ENTER_EMAIL_FOR_RESET, vm.uiState.emailError)
+        assertEquals(0, reset.sentTo.size)
+    }
+
+    @Test
+    fun forgotPassword_nonBuEmail_isNotSent() {
+        val reset = TestPasswordReset()
+        val vm = LoginViewModel(auth, reset).apply { onEmailChange("priya@gmail.com") }
+
+        vm.onForgotPassword()
+
+        assertEquals("Use your @bu.edu email", vm.uiState.emailError)
+        assertEquals(0, reset.sentTo.size)
+    }
+
+    @Test
+    fun forgotPassword_failure_showsMessage() {
+        val reset = TestPasswordReset().apply { result = Result.failure(Exception("No internet connection. Check it and try again.")) }
+        val vm = LoginViewModel(auth, reset).apply { onEmailChange("priya02@bu.edu") }
+
+        vm.onForgotPassword()
+
+        assertEquals("No internet connection. Check it and try again.", vm.uiState.submitError)
+        assertNull(vm.uiState.infoMessage)
+    }
 }

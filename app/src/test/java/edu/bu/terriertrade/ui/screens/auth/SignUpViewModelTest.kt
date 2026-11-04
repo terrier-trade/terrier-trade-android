@@ -18,8 +18,8 @@ class SignUpViewModelTest {
     private fun filledIn() = SignUpViewModel(auth).apply {
         onNameChange("  Priya Shah ")
         onEmailChange("priya@bu.edu")
-        onPasswordChange("terriers2026")
-        onYearSelect(ClassYear.JUNIOR)
+        onPasswordChange("terriers2026!")
+        onConfirmPasswordChange("terriers2026!")
         onAgreeChange(true)
     }
 
@@ -43,13 +43,38 @@ class SignUpViewModelTest {
     }
 
     @Test
+    fun passwordWithoutSpecialCharacter_showsError() {
+        val vm = filledIn().apply {
+            onPasswordChange("terriers2026")
+            onConfirmPasswordChange("terriers2026")
+        }
+        assertFalse(vm.validate())
+        assertEquals("Add a special character, like ! or @", vm.uiState.passwordError)
+    }
+
+    @Test
+    fun passwordsThatDontMatch_showError() {
+        val vm = filledIn().apply { onConfirmPasswordChange("terriers2025") }
+        assertFalse(vm.validate())
+        assertEquals("Passwords don't match", vm.uiState.confirmPasswordError)
+    }
+
+    @Test
+    fun changingPassword_clearsMatchError() {
+        val vm = filledIn().apply { onConfirmPasswordChange("nope") }
+        vm.validate()
+        vm.onPasswordChange("terriers2027!")
+        assertNull(vm.uiState.confirmPasswordError)
+    }
+
+    @Test
     fun emptyForm_showsEveryError() {
         val vm = SignUpViewModel(auth)
         assertFalse(vm.validate())
         with(vm.uiState) {
             assertEquals("Enter your name", nameError)
             assertEquals("Enter your BU email", emailError)
-            assertEquals("Pick your year", yearError)
+            assertEquals("Type your password again", confirmPasswordError)
             assertEquals("Agree to the community rules to continue", rulesError)
         }
     }

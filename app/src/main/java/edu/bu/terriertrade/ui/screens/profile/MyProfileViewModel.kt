@@ -104,6 +104,11 @@ class MyProfileViewModel(
         }
     }
 
+    /** The app frame sees currentUserId turn null and goes back to Welcome. */
+    fun onSignOut() {
+        authRepository.signOut()
+    }
+
     fun onToggleSaved(listingId: String) {
         viewModelScope.launch { savedRepository.toggleSaved(listingId) }
     }

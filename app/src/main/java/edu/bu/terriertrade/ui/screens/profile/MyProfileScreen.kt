@@ -3,6 +3,7 @@ package edu.bu.terriertrade.ui.screens.profile
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +19,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,6 +36,7 @@ import edu.bu.terriertrade.ui.components.TTLoadingState
 import edu.bu.terriertrade.ui.components.TTMyListingRow
 import edu.bu.terriertrade.ui.components.TTProfileHeaderCard
 import edu.bu.terriertrade.ui.components.TTReviewCard
+import edu.bu.terriertrade.ui.components.TTSecondaryButton
 import edu.bu.terriertrade.ui.model.MyListingUi
 import edu.bu.terriertrade.ui.model.ProfileHeaderUi
 import edu.bu.terriertrade.ui.model.ReviewUi
@@ -44,6 +51,8 @@ fun MyProfileRoute(
     modifier: Modifier = Modifier,
     viewModel: MyProfileViewModel = viewModel(factory = MyProfileViewModel.Factory),
 ) {
+    var confirmSignOut by rememberSaveable { mutableStateOf(false) }
+
     MyProfileScreen(
         uiState = viewModel.uiState,
         onTabSelect = viewModel::onTabSelect,
@@ -51,8 +60,24 @@ fun MyProfileRoute(
         onMarkSold = viewModel::onMarkSold,
         onRemoveClick = viewModel::onRemoveClick,
         onToggleSaved = viewModel::onToggleSaved,
+        onSignOutClick = { confirmSignOut = true },
         modifier = modifier,
     )
+
+    if (confirmSignOut) {
+        AlertDialog(
+            onDismissRequest = { confirmSignOut = false },
+            title = { Text("Sign out?") },
+            text = { Text("You'll need your BU email and password to sign back in.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmSignOut = false
+                    viewModel.onSignOut()
+                }) { Text("Sign out") }
+            },
+            dismissButton = { TextButton(onClick = { confirmSignOut = false }) { Text("Cancel") } },
+        )
+    }
 
     viewModel.uiState.confirmRemove?.let { item ->
         AlertDialog(
@@ -75,6 +100,7 @@ fun MyProfileScreen(
     onRemoveClick: (MyListingUi) -> Unit,
     onToggleSaved: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onSignOutClick: () -> Unit = {},
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         val header = uiState.header
@@ -85,7 +111,12 @@ fun MyProfileScreen(
                 message = "Sign in with your BU email to see your profile.",
             )
             uiState.errorMessage != null && header == null -> TTErrorState(message = uiState.errorMessage)
-            header == null -> TTEmptyState(title = "Profile not found", message = "Try signing out and back in.")
+            header == null -> TTEmptyState(
+                title = "Profile not found",
+                message = "Try signing out and back in.",
+                actionText = "Sign out",
+                onAction = onSignOutClick,
+            )
             else -> ProfileContent(
                 header = header,
                 uiState = uiState,
@@ -94,6 +125,7 @@ fun MyProfileScreen(
                 onMarkSold = onMarkSold,
                 onRemoveClick = onRemoveClick,
                 onToggleSaved = onToggleSaved,
+                onSignOutClick = onSignOutClick,
             )
         }
     }
@@ -108,6 +140,7 @@ private fun ProfileContent(
     onMarkSold: (String) -> Unit,
     onRemoveClick: (MyListingUi) -> Unit,
     onToggleSaved: (String) -> Unit,
+    onSignOutClick: () -> Unit,
 ) {
     val side = Modifier.padding(horizontal = Spacing.lg)
 
@@ -201,6 +234,15 @@ private fun ProfileContent(
                     TTReviewCard(review = review, modifier = side)
                 }
             }
+        }
+
+        item {
+            TTSecondaryButton(
+                text = "Sign out",
+                onClick = onSignOutClick,
+                leadingIcon = Icons.AutoMirrored.Outlined.Logout,
+                modifier = side.fillMaxWidth().padding(top = Spacing.lg),
+            )
         }
     }
 }

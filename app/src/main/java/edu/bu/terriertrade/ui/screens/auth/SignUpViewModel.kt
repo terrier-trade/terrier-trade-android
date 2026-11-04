@@ -11,11 +11,11 @@ import edu.bu.terriertrade.data.repository.AuthRepository
 import edu.bu.terriertrade.di.appContainer
 import edu.bu.terriertrade.util.EmailCheck
 import edu.bu.terriertrade.util.EmailValidator
+import edu.bu.terriertrade.util.PasswordRules
 import kotlinx.coroutines.launch
 
 /**
- * Holds the Sign up form, checks it, then creates the account and sends the verification email.
- * TODO(profile): save the class year to the user's profile once the Firestore user repository lands.
+ * Holds the Create account form, checks it, then creates the account and sends the verification email.
  */
 class SignUpViewModel(
     private val authRepository: AuthRepository,
@@ -33,11 +33,11 @@ class SignUpViewModel(
     }
 
     fun onPasswordChange(value: String) {
-        uiState = uiState.copy(password = value, passwordError = null, submitError = null)
+        uiState = uiState.copy(password = value, passwordError = null, confirmPasswordError = null, submitError = null)
     }
 
-    fun onYearSelect(year: ClassYear) {
-        uiState = uiState.copy(year = year, yearError = null)
+    fun onConfirmPasswordChange(value: String) {
+        uiState = uiState.copy(confirmPassword = value, confirmPasswordError = null, submitError = null)
     }
 
     fun onAgreeChange(agreed: Boolean) {
@@ -76,23 +76,26 @@ class SignUpViewModel(
             EmailCheck.Malformed -> "That doesn't look like an email address"
             EmailCheck.NotBuEmail -> "Use your @bu.edu email"
         }
-        val passwordError =
-            if (state.password.length < MIN_PASSWORD_LENGTH) "Use at least $MIN_PASSWORD_LENGTH characters" else null
-        val yearError = if (state.year == null) "Pick your year" else null
+        val passwordError = PasswordRules.problem(state.password)
+        val confirmPasswordError = when {
+            state.confirmPassword.isEmpty() -> "Type your password again"
+            state.confirmPassword != state.password -> "Passwords don't match"
+            else -> null
+        }
         val rulesError = if (!state.agreedToRules) "Agree to the community rules to continue" else null
 
         uiState = state.copy(
             nameError = nameError,
             emailError = emailError,
             passwordError = passwordError,
-            yearError = yearError,
+            confirmPasswordError = confirmPasswordError,
             rulesError = rulesError,
         )
-        return listOf(nameError, emailError, passwordError, yearError, rulesError).all { it == null }
+        return listOf(nameError, emailError, passwordError, confirmPasswordError, rulesError).all { it == null }
     }
 
     companion object {
-        const val MIN_PASSWORD_LENGTH = 8
+        const val MIN_PASSWORD_LENGTH = PasswordRules.MIN_LENGTH
 
         val Factory = viewModelFactory {
             initializer { SignUpViewModel(appContainer.authRepository) }
