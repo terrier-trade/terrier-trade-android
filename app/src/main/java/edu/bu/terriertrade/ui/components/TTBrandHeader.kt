@@ -20,9 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
+import edu.bu.terriertrade.ui.theme.TTTheme
 
 /**
- * Big red header with the crest, used on Welcome.
+ * Big red header with the crest, used on Welcome and the sign-in screen.
  * Draws behind the status bar, so the screen using it should not add top padding.
  */
 @Composable
@@ -31,13 +32,15 @@ fun TTBrandHeader(
     modifier: Modifier = Modifier,
     eyebrow: String? = null,
     tagline: String? = null,
+    /** The Welcome screen shouts the title; the sign-in screen shows it as written, like the proposal. */
+    uppercaseTitle: Boolean = true,
 ) {
-    val onRed = MaterialTheme.colorScheme.onPrimary
+    val onRed = TTTheme.colors.onHeader
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = MaterialTheme.colorScheme.primary,
+                color = TTTheme.colors.header,
                 shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
             )
             .windowInsetsPadding(WindowInsets.statusBars)
@@ -54,7 +57,7 @@ fun TTBrandHeader(
             )
         }
         Text(
-            text = title.uppercase(),
+            text = if (uppercaseTitle) title.uppercase() else title,
             style = MaterialTheme.typography.displaySmall,
             color = onRed,
             textAlign = TextAlign.Center,

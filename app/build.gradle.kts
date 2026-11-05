@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
 
     // Architecture: ViewModel, lifecycle-aware state, navigation, coroutines
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -93,4 +94,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
 }

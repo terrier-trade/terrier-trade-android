@@ -18,14 +18,14 @@ import androidx.compose.ui.unit.dp
 import edu.bu.terriertrade.R
 
 /**
- * The Terrier Trade crest on a white circle.
- * Always white behind the crest, in dark mode too, because it's the brand mark.
+ * The Terrier Trade logo (red tag with terrier ears) on a white circle.
+ * The white circle keeps the red logo visible on red headers and in dark mode.
  */
 @Composable
 fun TTCrestLogo(
     modifier: Modifier = Modifier,
     size: Dp = 112.dp,
-    contentDescription: String? = "Terrier Trade crest",
+    contentDescription: String? = "Terrier Trade logo",
 ) {
     Box(
         modifier = modifier
@@ -34,11 +34,11 @@ fun TTCrestLogo(
         contentAlignment = Alignment.Center,
     ) {
         Image(
-            painter = painterResource(R.drawable.ic_crest),
+            painter = painterResource(R.drawable.ic_logo),
             contentDescription = contentDescription,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(size / 10),
+                .padding(size / 7),
         )
     }
 }

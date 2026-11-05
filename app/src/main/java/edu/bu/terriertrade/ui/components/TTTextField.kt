@@ -38,7 +38,7 @@ fun TTTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
-        label = { Text(label) },
+        label = if (label.isNotEmpty()) { { Text(label) } } else null,
         placeholder = if (placeholder != null) { { Text(placeholder) } } else null,
         supportingText = if (supporting != null) { { Text(supporting) } } else null,
         isError = errorMessage != null,
