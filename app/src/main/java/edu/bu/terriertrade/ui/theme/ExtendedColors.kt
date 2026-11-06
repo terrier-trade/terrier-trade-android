@@ -22,6 +22,9 @@ data class TTExtendedColors(
     val onWarningContainer: Color,
     val stickyNote: Color,
     val onStickyNote: Color,
+    val header: Color,
+    val onHeader: Color,
+
 )
 
 internal val LightExtendedColors = TTExtendedColors(
@@ -33,6 +36,8 @@ internal val LightExtendedColors = TTExtendedColors(
     onWarningContainer = OnWarningContainer,
     stickyNote = StickyNote,
     onStickyNote = Ink,
+    header = Scarlet,
+    onHeader = Color.White,
 )
 
 internal val DarkExtendedColors = TTExtendedColors(
@@ -44,6 +49,8 @@ internal val DarkExtendedColors = TTExtendedColors(
     onWarningContainer = WarningOnDark,
     stickyNote = StickyNoteDark,
     onStickyNote = NightText,
+    header = ScarletDark,
+    onHeader = Color.White,
 )
 
 internal val LocalTTExtendedColors = staticCompositionLocalOf { LightExtendedColors }

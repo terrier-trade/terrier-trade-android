@@ -4,24 +4,26 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import edu.bu.terriertrade.navigation.Routes
-import edu.bu.terriertrade.ui.screens.PlaceholderScreen
-import edu.bu.terriertrade.ui.screens.welcome.WelcomeScreen
+import edu.bu.terriertrade.ui.screens.auth.AuthRoute
+import edu.bu.terriertrade.ui.screens.auth.AuthTab
+import edu.bu.terriertrade.ui.screens.auth.VerifyEmailRoute
+import edu.bu.terriertrade.ui.screens.auth.openHomeAfterSignIn
 
-/** Welcome, sign in, sign up and email verification. */
+/**
+ * Sign in / Create account, then email verification. Verified students land on Browse.
+ * WELCOME is the first screen for signed-out students (see rememberStartRoute).
+ */
 fun NavGraphBuilder.authScreens(navController: NavHostController) {
-    composable(Routes.WELCOME) {
-        WelcomeScreen(
-            onGetStarted = { navController.navigate(Routes.SIGN_UP) },
-            onSignIn = { navController.navigate(Routes.SIGN_IN) },
-        )
+    val onSignedIn: (Boolean) -> Unit = { isVerified ->
+        if (isVerified) navController.openHomeAfterSignIn() else navController.navigate(Routes.VERIFY_EMAIL)
     }
-    composable(Routes.SIGN_IN) {
-        PlaceholderScreen(title = "Sign in", onBack = { navController.popBackStack() })
-    }
-    composable(Routes.SIGN_UP) {
-        PlaceholderScreen(title = "Create account", onBack = { navController.popBackStack() })
-    }
+    composable(Routes.WELCOME) { AuthRoute(onSignedIn = onSignedIn) }
+    composable(Routes.SIGN_IN) { AuthRoute(onSignedIn = onSignedIn) }
+    composable(Routes.SIGN_UP) { AuthRoute(onSignedIn = onSignedIn, initialTab = AuthTab.CREATE_ACCOUNT) }
     composable(Routes.VERIFY_EMAIL) {
-        PlaceholderScreen(title = "Verify your email", onBack = { navController.popBackStack() })
+        VerifyEmailRoute(
+            onBack = { navController.popBackStack(Routes.WELCOME, inclusive = false) },
+            onVerified = { navController.openHomeAfterSignIn() },
+        )
     }
 }

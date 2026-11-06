@@ -2,13 +2,13 @@ package edu.bu.terriertrade.ui.screens.post
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import edu.bu.terriertrade.ui.components.TTEmptyState
 
+/**
+ * The Post tab. Navigation already calls this, so the new form shows up without touching navigation.
+ * TODO(nav): navigation can call NewListingRoute directly and open the listing after posting,
+ * then this file can be deleted.
+ */
 @Composable
 fun PostListingScreen(modifier: Modifier = Modifier) {
-    TTEmptyState(
-        title = "Post a listing",
-        message = "Photos, title, price and description will go here.",
-        modifier = modifier,
-    )
+    NewListingRoute(onPosted = {}, modifier = modifier)
 }
