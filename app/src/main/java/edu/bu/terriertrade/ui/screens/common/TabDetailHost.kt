@@ -50,6 +50,7 @@ fun TabDetailHost(
                 userId = top.id,
                 onBack = pop,
                 onListingClick = { open(TabDetail.Listing(it)) },
+                onOpenChat = { /* Connected to the chat screen later */ },
                 viewModel = viewModel(key = "user:${top.id}", factory = UserProfileViewModel.Factory),
             )
         }

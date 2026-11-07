@@ -16,8 +16,10 @@ data class UserProfileUiState(
     /** True when you opened your own profile from a listing. Hides "Open chat". */
     val isMe: Boolean = false,
     val isOpeningChat: Boolean = false,
-    /** Shown after "Open chat", like "Chat with Sam is ready in Chats." */
-    val chatMessage: String? = null,
+    /** Why opening the chat failed, shown above the button. Null when there's nothing to show. */
+    val chatError: String? = null,
+    /** One-time signal to open this chat. The screen opens it, then calls onChatOpened(). */
+    val openChatId: String? = null,
 ) {
     val firstName: String get() = header?.name?.trim()?.substringBefore(' ').orEmpty()
 }

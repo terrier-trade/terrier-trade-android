@@ -88,23 +88,32 @@ class UserProfileViewModel(
         viewModelScope.launch { savedRepository.toggleSaved(listingId) }
     }
 
-    /** TODO(chat): open the chat screen once it exists. For now the chat shows up in the Chats tab. */
+    /**
+     * "Open chat" on someone's profile: finds or creates the chat with them, then signals the
+     * screen to open it. No deal is started here; deals start from Request on a listing.
+     */
     fun onOpenChat() {
         val userId = loadedId ?: return
-        if (uiState.isOpeningChat || uiState.isMe) return
-        uiState = uiState.copy(isOpeningChat = true, chatMessage = null)
+        if (uiState.isOpeningChat || uiState.isMe) return // ignore double taps, and no chat with yourself
+
+        uiState = uiState.copy(isOpeningChat = true, chatError = null)
         viewModelScope.launch {
             chatRepository.openChatWith(userId)
-                .onSuccess {
-                    uiState = uiState.copy(
-                        isOpeningChat = false,
-                        chatMessage = "Chat with ${uiState.firstName} is ready in Chats.",
-                    )
+                .onSuccess { chatId ->
+                    uiState = uiState.copy(isOpeningChat = false, openChatId = chatId)
                 }
                 .onFailure { error ->
-                    uiState = uiState.copy(isOpeningChat = false, chatMessage = error.message ?: "Couldn't open a chat.")
+                    uiState = uiState.copy(
+                        isOpeningChat = false,
+                        chatError = error.message ?: "Couldn't open a chat. Try again.",
+                    )
                 }
         }
+    }
+
+    /** Called by the screen once it has opened the chat, so the signal fires only once. */
+    fun onChatOpened() {
+        uiState = uiState.copy(openChatId = null)
     }
 
     companion object {
