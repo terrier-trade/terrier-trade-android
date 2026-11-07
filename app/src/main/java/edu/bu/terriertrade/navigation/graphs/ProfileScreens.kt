@@ -7,12 +7,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.ui.screens.PlaceholderScreen
-import edu.bu.terriertrade.ui.screens.profile.ProfileScreen
+import edu.bu.terriertrade.ui.screens.profile.MyProfileRoute
+import edu.bu.terriertrade.ui.screens.profile.UserProfileRoute
 
 /** Your profile, editing it, and another student's profile. */
 fun NavGraphBuilder.profileScreens(navController: NavHostController) {
     composable(Routes.PROFILE) {
-        ProfileScreen()
+        MyProfileRoute(
+            onListingClick = { listingId -> navController.navigate(Routes.listingDetail(listingId)) },
+        )
     }
     composable(Routes.EDIT_PROFILE) {
         PlaceholderScreen(title = "Edit profile", onBack = { navController.popBackStack() })
@@ -22,10 +25,11 @@ fun NavGraphBuilder.profileScreens(navController: NavHostController) {
         arguments = listOf(navArgument(Routes.ARG_USER_ID) { type = NavType.StringType }),
     ) { entry ->
         val userId = entry.arguments?.getString(Routes.ARG_USER_ID).orEmpty()
-        PlaceholderScreen(
-            title = "Profile",
-            message = "Profile for $userId will show here.",
+        UserProfileRoute(
+            userId = userId,
             onBack = { navController.popBackStack() },
+            onListingClick = { listingId -> navController.navigate(Routes.listingDetail(listingId)) },
+            onOpenChat = { chatId -> navController.navigate(Routes.chat(chatId)) },
         )
     }
 }
