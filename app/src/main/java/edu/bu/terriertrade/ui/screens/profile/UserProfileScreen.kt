@@ -32,7 +32,7 @@ import edu.bu.terriertrade.ui.components.TTReviewCard
 import edu.bu.terriertrade.ui.components.TTSectionHeader
 import edu.bu.terriertrade.ui.model.ProfileHeaderUi
 import edu.bu.terriertrade.ui.model.ReviewUi
-import edu.bu.terriertrade.ui.model.SampleData
+import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -193,7 +193,7 @@ private fun UserProfileScreenPreview() {
                     ratingLabel = "4.9", tradeCount = 14, classOf = "'26", buDates = "Fall 2022 to May 2026",
                     bio = "Physics senior clearing out my desk before graduation. Usually free after 3pm.", meetSpot = "GSU",
                 ),
-                listings = SampleData.listings.take(2),
+                listings = PreviewData.listings.take(2),
                 reviews = listOf(
                     ReviewUi("r3", "Priya B.", "PB", 5, listOf("Friendly"), "Super quick and friendly.", "Oct 21"),
                 ),

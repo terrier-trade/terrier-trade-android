@@ -42,7 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.ui.common.UiState
 import edu.bu.terriertrade.ui.common.UiStateContent
-import edu.bu.terriertrade.ui.screens.chats.InitialsAvatar
+import edu.bu.terriertrade.ui.components.TTAvatar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -148,9 +148,11 @@ private fun ChatTopBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.md),
                 ) {
-                    InitialsAvatar(
+                    TTAvatar(
                         initials = content.partnerInitials,
                         size = 40.dp,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.border(2.dp, onRed, CircleShape),
                     )
                     Column {

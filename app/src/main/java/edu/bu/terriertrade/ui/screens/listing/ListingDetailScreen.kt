@@ -37,9 +37,9 @@ import edu.bu.terriertrade.ui.components.TTPrimaryButton
 import edu.bu.terriertrade.ui.components.TTSellerRow
 import edu.bu.terriertrade.ui.components.TTTag
 import edu.bu.terriertrade.ui.model.ListingUi
+import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
-import edu.bu.terriertrade.ui.model.SampleData
 
 /** Stateful entry point for navigation. Loads the listing for [listingId]. */
 @Composable
@@ -200,7 +200,7 @@ private fun ListingDetailContent(
 private fun ListingDetailScreenPreview() {
     TerrierTradeTheme {
         ListingDetailScreen(
-            uiState = ListingDetailUiState(listing = SampleData.listings.first()),
+            uiState = ListingDetailUiState(listing = PreviewData.listings.first()),
             onBack = {}, onToggleFavorite = {}, onRequest = {},
         )
     }
@@ -211,7 +211,7 @@ private fun ListingDetailScreenPreview() {
 private fun ListingDetailRequestedPreview() {
     TerrierTradeTheme {
         ListingDetailScreen(
-            uiState = ListingDetailUiState(listing = SampleData.listings.first(), isFavorite = true, isRequesting = true),
+            uiState = ListingDetailUiState(listing = PreviewData.listings.first(), isFavorite = true, isRequesting = true),
             onBack = {}, onToggleFavorite = {}, onRequest = {},
         )
     }

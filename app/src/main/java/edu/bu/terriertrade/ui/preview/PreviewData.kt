@@ -1,13 +1,16 @@
-package edu.bu.terriertrade.ui.model
+package edu.bu.terriertrade.ui.preview
 
 import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.ListingType
+import edu.bu.terriertrade.ui.model.ListingUi
+import edu.bu.terriertrade.ui.model.SellerUi
+import edu.bu.terriertrade.ui.model.WantedPostUi
 
 /**
- * Placeholder content so screens work before the data layer is connected.
- * TODO(data): replace with the repository's listings, mapped to ListingUi.
+ * Ready-made UI models for @Preview functions only. The running app never reads this:
+ * screens get real data from their ViewModels, and the fake repositories use data/fake/SampleData.
  */
-object SampleData {
+object PreviewData {
 
     private val maya = SellerUi(name = "Maya", initials = "MR", rating = "4.7", tradeCount = 6)
     private val nina = SellerUi(name = "Nina", initials = "NP", rating = "5.0", tradeCount = 9)

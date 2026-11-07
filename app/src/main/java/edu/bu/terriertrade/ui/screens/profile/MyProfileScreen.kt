@@ -40,7 +40,7 @@ import edu.bu.terriertrade.ui.components.TTSecondaryButton
 import edu.bu.terriertrade.ui.model.MyListingUi
 import edu.bu.terriertrade.ui.model.ProfileHeaderUi
 import edu.bu.terriertrade.ui.model.ReviewUi
-import edu.bu.terriertrade.ui.model.SampleData
+import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -261,7 +261,7 @@ private fun MyProfileListingsPreview() {
             uiState = MyProfileUiState(
                 isLoading = false,
                 header = previewHeader,
-                myListings = SampleData.listings.take(3).mapIndexed { i, l -> MyListingUi(l, isSold = i == 2) },
+                myListings = PreviewData.listings.take(3).mapIndexed { i, l -> MyListingUi(l, isSold = i == 2) },
             ),
             onTabSelect = {}, onListingClick = {}, onMarkSold = {}, onRemoveClick = {}, onToggleSaved = {},
         )

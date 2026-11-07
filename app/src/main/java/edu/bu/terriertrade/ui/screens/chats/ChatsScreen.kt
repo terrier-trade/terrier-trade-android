@@ -4,18 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.ui.common.UiState
 import edu.bu.terriertrade.ui.common.UiStateContent
+import edu.bu.terriertrade.ui.components.TTSearchBar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -78,7 +71,12 @@ fun ChatsScreenContent(
                 ChatsTitle(totalCount = content.totalCount, needsReplyCount = content.needsReplyCount)
             }
             item(key = "search") {
-                SearchPill(query = query, onQueryChange = onQueryChange)
+                TTSearchBar(
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    placeholder = "Search people",
+                    outlined = true,
+                )
             }
             if (content.sections.isEmpty()) {
                 item(key = "no-results") {
@@ -119,28 +117,6 @@ private fun ChatsTitle(totalCount: Int, needsReplyCount: Int) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-}
-
-@Composable
-private fun SearchPill(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search people") },
-        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-        trailingIcon = if (query.isNotEmpty()) {
-            {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Outlined.Close, contentDescription = "Clear search")
-                }
-            }
-        } else {
-            null
-        },
-        singleLine = true,
-        shape = CircleShape,
-    )
 }
 
 @Composable

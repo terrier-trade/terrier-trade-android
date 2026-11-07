@@ -1,15 +1,11 @@
 package edu.bu.terriertrade.ui.screens.chats
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,8 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import edu.bu.terriertrade.ui.components.TTAvatar
 import edu.bu.terriertrade.ui.components.TTPreviewColumn
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TTTheme
@@ -47,7 +43,12 @@ fun ChatRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.md),
         ) {
-            InitialsAvatar(initials = row.partnerInitials, showDot = needsReply)
+            TTAvatar(
+                initials = row.partnerInitials,
+                containerColor = colors.primary,
+                contentColor = colors.onPrimary,
+                showDot = needsReply,
+            )
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -78,39 +79,6 @@ fun ChatRow(
                     DealTagPill(tag = row.dealTag, partnerFirstName = row.partnerFirstName)
                 }
             }
-        }
-    }
-}
-
-/** Circle with the person's initials. The red dot means something is waiting on you. */
-@Composable
-internal fun InitialsAvatar(
-    initials: String,
-    modifier: Modifier = Modifier,
-    size: Dp = 44.dp,
-    showDot: Boolean = false,
-) {
-    Box(modifier = modifier.size(size)) {
-        Box(
-            modifier = Modifier
-                .size(size)
-                .background(MaterialTheme.colorScheme.primary, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = initials,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
-        if (showDot) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(12.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-                    .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape),
-            )
         }
     }
 }

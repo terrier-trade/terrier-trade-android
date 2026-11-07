@@ -36,9 +36,9 @@ import edu.bu.terriertrade.ui.components.TTSearchBar
 import edu.bu.terriertrade.ui.components.TTSectionHeader
 import edu.bu.terriertrade.ui.components.TTWantedNote
 import edu.bu.terriertrade.ui.model.ListingUi
-import edu.bu.terriertrade.ui.model.SampleData
 import edu.bu.terriertrade.ui.model.WantedPostUi
 import edu.bu.terriertrade.ui.model.icon
+import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 import edu.bu.terriertrade.ui.components.TTAppHeaderCornerOverlap
@@ -335,8 +335,8 @@ private fun BrowseScreenPreview() {
     TerrierTradeTheme {
         BrowseScreen(
             uiState = BrowseUiState(
-                listings = SampleData.listings,
-                wanted = SampleData.wanted,
+                listings = PreviewData.listings,
+                wanted = PreviewData.wanted,
                 favoriteIds = setOf("cs330-tutoring"),
             ),
             onQueryChange = {}, onCategorySelect = {}, onFilterSelect = {}, onToggleFavorite = {},
@@ -350,7 +350,7 @@ private fun BrowseScreenPreview() {
 private fun BrowseScreenInTabPreview() {
     TerrierTradeTheme {
         BrowseScreen(
-            uiState = BrowseUiState(listings = SampleData.listings, wanted = SampleData.wanted),
+            uiState = BrowseUiState(listings = PreviewData.listings, wanted = PreviewData.wanted),
             onQueryChange = {}, onCategorySelect = {}, onFilterSelect = {}, onToggleFavorite = {},
             onRequest = {}, onListingClick = {}, onHelpClick = {}, onNotificationsClick = {},
             showAppHeader = false,
@@ -363,7 +363,7 @@ private fun BrowseScreenInTabPreview() {
 private fun BrowseScreenLookingForPreview() {
     TerrierTradeTheme {
         BrowseScreen(
-            uiState = BrowseUiState(filter = BrowseFilter.LOOKING_FOR, wanted = SampleData.wanted),
+            uiState = BrowseUiState(filter = BrowseFilter.LOOKING_FOR, wanted = PreviewData.wanted),
             onQueryChange = {}, onCategorySelect = {}, onFilterSelect = {}, onToggleFavorite = {},
             onRequest = {}, onListingClick = {}, onHelpClick = {}, onNotificationsClick = {},
         )
