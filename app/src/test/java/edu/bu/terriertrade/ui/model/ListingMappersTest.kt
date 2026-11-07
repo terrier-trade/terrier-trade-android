@@ -77,24 +77,26 @@ class ListingMappersTest {
     }
 
     @Test
-    fun tutoringService_isASkillSwap_withNoPrice() {
+    fun tutoringService_showsItsHourlyPrice() {
+        // Tutoring is a normal paid service, so the card shows the rate and how the session happens.
         val ui = Listing(
             id = "l4", ownerId = "nina", type = DataListingType.SERVICE, title = "CS 330 tutoring", price = 20,
-            priceUnit = PriceUnit.PER_HOUR, category = Category.TUTORING, createdAt = now,
+            priceUnit = PriceUnit.PER_HOUR, category = Category.TUTORING, serviceMode = ServiceMode.ONLINE,
+            createdAt = now,
         ).toListingUi(maya, now, utc)!!
 
-        assertEquals("Skill swap", ui.priceLabel)
-        assertEquals("Need: CS 511 tutoring", ui.condition)
+        assertEquals("$20/hr", ui.priceLabel)
+        assertEquals("Online", ui.condition)
     }
 
     @Test
-    fun tutoringRequest_showsTheSwap_notABudget() {
+    fun tutoringRequest_showsItsBudget() {
         val note = Listing(
             id = "l10", ownerId = "maya", type = DataListingType.WANTED, title = "Math tutor for MA 124", price = 25,
             priceUnit = PriceUnit.PER_HOUR, category = Category.TUTORING, createdAt = now,
         ).toWantedPostUi(maya, now, utc)
 
-        assertEquals("Swap for: CS 511 tutoring", note.budgetLabel)
+        assertEquals("Up to $25/hr", note.budgetLabel)
     }
 
     @Test

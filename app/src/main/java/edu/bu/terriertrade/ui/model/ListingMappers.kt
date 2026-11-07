@@ -28,9 +28,7 @@ fun Listing.toListingUi(
         DataListingType.TICKET -> ListingType.TICKET
         DataListingType.WANTED -> return null
     }
-    val isSwap = SkillSwaps.isSwap(this)
     val shortLine = when {
-        isSwap -> "Need: ${SkillSwaps.inReturnFor(this)}"
         type == DataListingType.SERVICE -> serviceMode?.label ?: "Service"
         type == DataListingType.TICKET -> quantity?.let { if (it == 1) "1 left" else "$it left" } ?: "Tickets"
         else -> condition?.label ?: "Used"
@@ -43,11 +41,7 @@ fun Listing.toListingUi(
     return ListingUi(
         id = id,
         title = title,
-        priceLabel = when {
-            isSwap -> SkillSwaps.PRICE_LABEL
-            type == DataListingType.TICKET -> "${priceLabel()} each"
-            else -> priceLabel()
-        },
+        priceLabel = if (type == DataListingType.TICKET) "${priceLabel()} each" else priceLabel(),
         type = uiType,
         category = category.toUi(),
         meetSpot = meetSpot.ifBlank { "On campus" },
@@ -72,7 +66,7 @@ fun Listing.toWantedPostUi(
 ): WantedPostUi = WantedPostUi(
     id = id,
     title = title,
-    budgetLabel = if (SkillSwaps.isSwap(this)) "Swap for: ${SkillSwaps.inReturnFor(this)}" else priceLabel(),
+    budgetLabel = priceLabel(),
     postedBy = owner?.name?.takeIf { it.isNotBlank() } ?: "A BU student",
     postedAgo = TimeFormat.ago(createdAt, nowMillis, zone).let { if (it == "now") "just now" else "$it ago" },
 )

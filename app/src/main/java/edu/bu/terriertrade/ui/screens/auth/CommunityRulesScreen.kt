@@ -14,7 +14,6 @@ import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.ReportProblem
 import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.MaterialTheme
@@ -51,11 +50,6 @@ object CommunityRules {
             Icons.Outlined.Place, "Meet on campus, in public",
             "Meet in busy public spots like GSU or Mugar Library, in daylight when you can. " +
                 "Don't share your room number or go somewhere private with someone you just met.",
-        ),
-        CommunityRule(
-            Icons.Outlined.SwapHoriz, "Skill swaps",
-            "You can trade teaching for teaching with no money. Agree in chat on what each person " +
-                "teaches and for how long before you meet.",
         ),
         CommunityRule(
             Icons.Outlined.ConfirmationNumber, "How ticket handoffs work",

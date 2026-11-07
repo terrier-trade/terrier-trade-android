@@ -9,7 +9,6 @@ import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.ui.screens.browse.BrowseRoute
 import edu.bu.terriertrade.ui.screens.listing.ListingDetailRoute
 import edu.bu.terriertrade.ui.screens.post.NewListingRoute
-import edu.bu.terriertrade.ui.screens.skills.SkillsScreen
 
 /** Browse, posting and the listing detail screen. */
 fun NavGraphBuilder.listingScreens(navController: NavHostController) {
@@ -26,9 +25,6 @@ fun NavGraphBuilder.listingScreens(navController: NavHostController) {
             // After posting, show the new listing
             onPosted = { listingId -> navController.navigate(Routes.listingDetail(listingId)) },
         )
-    }
-    composable(Routes.SKILLS) {
-        SkillsScreen()
     }
     composable(
         route = Routes.LISTING_DETAIL,

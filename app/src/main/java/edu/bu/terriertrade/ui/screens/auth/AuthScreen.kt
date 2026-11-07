@@ -215,7 +215,7 @@ private fun SignInForm(login: LoginUiState, actions: AuthActions, notice: String
         } else {
             TTFeatureRow(icon = Icons.Outlined.VerifiedUser, text = "Verified BU students only")
             TTFeatureRow(icon = Icons.Outlined.PhotoCamera, text = "Snap a photo or scan a book, set a price")
-            TTFeatureRow(icon = Icons.Outlined.SwapHoriz, text = "Trade skills too, not just stuff")
+            TTFeatureRow(icon = Icons.Outlined.SwapHoriz, text = "Swap items, or mix items and cash in one deal")
         }
         TTEmailField(
             value = login.email,
