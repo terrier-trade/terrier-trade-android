@@ -19,13 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import edu.bu.terriertrade.data.model.PriceUnit
-import edu.bu.terriertrade.ui.components.TTActionTile
-import edu.bu.terriertrade.ui.components.TTBannerTone
-import edu.bu.terriertrade.ui.components.TTChoiceChips
-import edu.bu.terriertrade.ui.components.TTInfoBanner
-import edu.bu.terriertrade.ui.components.TTPhotoThumb
-import edu.bu.terriertrade.ui.components.TTSectionCard
-import edu.bu.terriertrade.ui.components.TTTextField
+import edu.bu.terriertrade.ui.components.feedback.TTBannerTone
+import edu.bu.terriertrade.ui.components.feedback.TTInfoBanner
+import edu.bu.terriertrade.ui.components.inputs.TTTextField
+import edu.bu.terriertrade.ui.components.layout.TTSectionCard
+import edu.bu.terriertrade.ui.components.listing.TTPhotoThumb
+import edu.bu.terriertrade.ui.components.selection.TTActionTile
+import edu.bu.terriertrade.ui.components.selection.TTChoiceChips
 import edu.bu.terriertrade.ui.model.icon
 import edu.bu.terriertrade.ui.theme.Spacing
 

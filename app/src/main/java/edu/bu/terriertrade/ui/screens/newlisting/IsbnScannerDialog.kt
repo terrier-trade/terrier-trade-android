@@ -44,9 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
-import edu.bu.terriertrade.ui.components.TTErrorText
-import edu.bu.terriertrade.ui.components.TTPrimaryButton
-import edu.bu.terriertrade.ui.components.TTTextField
+import edu.bu.terriertrade.ui.components.buttons.TTPrimaryButton
+import edu.bu.terriertrade.ui.components.feedback.TTErrorText
+import edu.bu.terriertrade.ui.components.inputs.TTTextField
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 import edu.bu.terriertrade.util.Isbn

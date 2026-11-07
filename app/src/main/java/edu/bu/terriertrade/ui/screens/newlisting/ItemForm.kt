@@ -10,10 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import edu.bu.terriertrade.data.model.Condition
-import edu.bu.terriertrade.ui.components.TTChoiceChips
-import edu.bu.terriertrade.ui.components.TTPriceField
-import edu.bu.terriertrade.ui.components.TTSectionCard
-import edu.bu.terriertrade.ui.components.TTTextField
+import edu.bu.terriertrade.ui.components.inputs.TTPriceField
+import edu.bu.terriertrade.ui.components.inputs.TTTextField
+import edu.bu.terriertrade.ui.components.layout.TTSectionCard
+import edu.bu.terriertrade.ui.components.selection.TTChoiceChips
 
 /** Item form: photos (with textbook scan), basics, then category, condition and meet spot. */
 @Composable

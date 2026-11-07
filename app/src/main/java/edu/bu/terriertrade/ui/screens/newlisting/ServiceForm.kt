@@ -14,10 +14,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.ServiceMode
-import edu.bu.terriertrade.ui.components.TTChoiceChips
-import edu.bu.terriertrade.ui.components.TTPriceField
-import edu.bu.terriertrade.ui.components.TTSectionCard
-import edu.bu.terriertrade.ui.components.TTTextField
+import edu.bu.terriertrade.ui.components.inputs.TTPriceField
+import edu.bu.terriertrade.ui.components.inputs.TTTextField
+import edu.bu.terriertrade.ui.components.layout.TTSectionCard
+import edu.bu.terriertrade.ui.components.selection.TTChoiceChips
 
 /** Service form: what you offer and your rate, then in person or online and where. */
 @Composable

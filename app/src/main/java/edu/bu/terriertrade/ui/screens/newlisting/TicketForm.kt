@@ -16,13 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import edu.bu.terriertrade.ui.components.TTChoiceChips
-import edu.bu.terriertrade.ui.components.TTDateTimeField
-import edu.bu.terriertrade.ui.components.TTPriceField
-import edu.bu.terriertrade.ui.components.TTQuantityStepper
-import edu.bu.terriertrade.ui.components.TTSectionCard
-import edu.bu.terriertrade.ui.components.TTTextField
-import edu.bu.terriertrade.ui.components.formatDateTime
+import edu.bu.terriertrade.ui.components.inputs.TTDateTimeField
+import edu.bu.terriertrade.ui.components.inputs.TTPriceField
+import edu.bu.terriertrade.ui.components.inputs.TTQuantityStepper
+import edu.bu.terriertrade.ui.components.inputs.TTTextField
+import edu.bu.terriertrade.ui.components.inputs.formatDateTime
+import edu.bu.terriertrade.ui.components.layout.TTSectionCard
+import edu.bu.terriertrade.ui.components.selection.TTChoiceChips
 import edu.bu.terriertrade.ui.theme.Spacing
 
 /** Ticket form from the proposal: event, date, section, quantity, price each, and where the ticket lives. */

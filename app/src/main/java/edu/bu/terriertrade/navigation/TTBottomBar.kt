@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import edu.bu.terriertrade.ui.components.TTPreviewColumn
+import edu.bu.terriertrade.ui.preview.TTPreviewColumn
 
 /**
  * Bottom navigation bar. Stateless: the caller passes the [currentRoute]

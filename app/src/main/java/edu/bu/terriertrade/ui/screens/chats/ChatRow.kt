@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import edu.bu.terriertrade.ui.components.TTAvatar
-import edu.bu.terriertrade.ui.components.TTPreviewColumn
+import edu.bu.terriertrade.ui.components.profile.TTAvatar
+import edu.bu.terriertrade.ui.preview.TTPreviewColumn
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TTTheme
 

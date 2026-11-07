@@ -34,12 +34,12 @@ import edu.bu.terriertrade.data.model.Condition
 import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.ServiceMode
-import edu.bu.terriertrade.ui.components.TTBannerTone
-import edu.bu.terriertrade.ui.components.TTErrorText
-import edu.bu.terriertrade.ui.components.TTInfoBanner
-import edu.bu.terriertrade.ui.components.TTOptionTile
-import edu.bu.terriertrade.ui.components.TTPrimaryButton
-import edu.bu.terriertrade.ui.components.TTSectionCard
+import edu.bu.terriertrade.ui.components.buttons.TTPrimaryButton
+import edu.bu.terriertrade.ui.components.feedback.TTBannerTone
+import edu.bu.terriertrade.ui.components.feedback.TTErrorText
+import edu.bu.terriertrade.ui.components.feedback.TTInfoBanner
+import edu.bu.terriertrade.ui.components.layout.TTSectionCard
+import edu.bu.terriertrade.ui.components.selection.TTOptionTile
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 

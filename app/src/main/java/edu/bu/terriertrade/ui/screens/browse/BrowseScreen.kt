@@ -24,25 +24,25 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.data.model.Category
-import edu.bu.terriertrade.ui.components.TTAppHeader
-import edu.bu.terriertrade.ui.components.TTCategoryIcon
-import edu.bu.terriertrade.ui.components.TTChipRow
-import edu.bu.terriertrade.ui.components.TTEmptyState
-import edu.bu.terriertrade.ui.components.TTErrorState
-import edu.bu.terriertrade.ui.components.TTListingRow
-import edu.bu.terriertrade.ui.components.TTLoadingState
-import edu.bu.terriertrade.ui.components.TTNoteColor
-import edu.bu.terriertrade.ui.components.TTSearchBar
-import edu.bu.terriertrade.ui.components.TTSectionHeader
-import edu.bu.terriertrade.ui.components.TTWantedNote
+import edu.bu.terriertrade.ui.components.feedback.TTEmptyState
+import edu.bu.terriertrade.ui.components.feedback.TTErrorState
+import edu.bu.terriertrade.ui.components.feedback.TTLoadingState
+import edu.bu.terriertrade.ui.components.inputs.TTSearchBar
+import edu.bu.terriertrade.ui.components.layout.TTAppHeader
+import edu.bu.terriertrade.ui.components.layout.TTAppHeaderCornerOverlap
+import edu.bu.terriertrade.ui.components.layout.TTSectionHeader
+import edu.bu.terriertrade.ui.components.layout.joinAppHeader
+import edu.bu.terriertrade.ui.components.listing.TTListingRow
+import edu.bu.terriertrade.ui.components.listing.TTNoteColor
+import edu.bu.terriertrade.ui.components.listing.TTWantedNote
+import edu.bu.terriertrade.ui.components.selection.TTCategoryIcon
+import edu.bu.terriertrade.ui.components.selection.TTChipRow
 import edu.bu.terriertrade.ui.model.ListingUi
 import edu.bu.terriertrade.ui.model.WantedPostUi
 import edu.bu.terriertrade.ui.model.icon
 import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
-import edu.bu.terriertrade.ui.components.TTAppHeaderCornerOverlap
-import edu.bu.terriertrade.ui.components.joinAppHeader
 
 /**
  * Stateful entry point for navigation.

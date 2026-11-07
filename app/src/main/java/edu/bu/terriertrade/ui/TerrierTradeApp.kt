@@ -19,8 +19,8 @@ import edu.bu.terriertrade.navigation.TTNavHost
 import edu.bu.terriertrade.navigation.TopLevelDestination
 import edu.bu.terriertrade.navigation.navigateToTopLevel
 import edu.bu.terriertrade.navigation.rememberStartRoute
-import edu.bu.terriertrade.ui.components.TTAppHeader
-import edu.bu.terriertrade.ui.components.TTOfflineBanner
+import edu.bu.terriertrade.ui.components.feedback.TTOfflineBanner
+import edu.bu.terriertrade.ui.components.layout.TTAppHeader
 
 /**
  * Root of the app. Bottom-bar tabs get the shared header and the bottom bar.

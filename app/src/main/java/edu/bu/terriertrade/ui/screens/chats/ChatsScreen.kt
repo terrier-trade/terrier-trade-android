@@ -23,7 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.ui.common.UiState
 import edu.bu.terriertrade.ui.common.UiStateContent
-import edu.bu.terriertrade.ui.components.TTSearchBar
+import edu.bu.terriertrade.ui.components.inputs.TTSearchBar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 

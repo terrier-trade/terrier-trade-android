@@ -23,10 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import edu.bu.terriertrade.ui.components.TTBottomActions
-import edu.bu.terriertrade.ui.components.TTPrimaryButton
-import edu.bu.terriertrade.ui.components.TTRuleCard
-import edu.bu.terriertrade.ui.components.TTScreenHeader
+import edu.bu.terriertrade.ui.components.buttons.TTPrimaryButton
+import edu.bu.terriertrade.ui.components.layout.TTBottomActions
+import edu.bu.terriertrade.ui.components.layout.TTRuleCard
+import edu.bu.terriertrade.ui.components.layout.TTScreenHeader
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
