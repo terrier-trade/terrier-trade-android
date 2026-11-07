@@ -23,8 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import edu.bu.terriertrade.ui.model.ListingCategory
-import edu.bu.terriertrade.ui.model.ListingType
+import edu.bu.terriertrade.data.model.Category
+import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.ui.model.ListingUi
 import edu.bu.terriertrade.ui.model.SellerUi
 import edu.bu.terriertrade.ui.model.icon
@@ -114,7 +114,7 @@ private fun StatusBadge(isSold: Boolean) {
 @Composable
 private fun TTMyListingRowPreview() {
     val lamp = ListingUi(
-        id = "m1", title = "Desk lamp", priceLabel = "$12", type = ListingType.ITEM, category = ListingCategory.FURNITURE,
+        id = "m1", title = "Desk lamp", priceLabel = "$12", type = ListingType.ITEM, category = Category.FURNITURE,
         meetSpot = "GSU", postedAgo = "3d", condition = "Like new", description = "",
         seller = SellerUi(name = "Alex", initials = "AM", rating = "4.8", tradeCount = 12),
     )

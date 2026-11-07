@@ -1,6 +1,6 @@
 package edu.bu.terriertrade.ui.screens.browse
 
-import edu.bu.terriertrade.ui.model.ListingCategory
+import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.ui.model.ListingUi
 import edu.bu.terriertrade.ui.model.WantedPostUi
 
@@ -16,7 +16,7 @@ enum class BrowseFilter(val label: String) {
 /** Everything the Browse screen draws. listings and wanted are already filtered. */
 data class BrowseUiState(
     val query: String = "",
-    val category: ListingCategory? = null,
+    val category: Category? = null,
     val filter: BrowseFilter = BrowseFilter.ALL,
     val listings: List<ListingUi> = emptyList(),
     val wanted: List<WantedPostUi> = emptyList(),

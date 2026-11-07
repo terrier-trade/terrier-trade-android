@@ -7,16 +7,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Listing
-import edu.bu.terriertrade.data.model.ListingType as DataListingType
+import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.User
 import edu.bu.terriertrade.data.repository.ChatRepository
 import edu.bu.terriertrade.data.repository.ListingRepository
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
 import edu.bu.terriertrade.di.appContainer
-import edu.bu.terriertrade.ui.model.ListingCategory
-import edu.bu.terriertrade.ui.model.ListingType
 import edu.bu.terriertrade.ui.model.ListingUi
 import edu.bu.terriertrade.ui.model.WantedPostUi
 import edu.bu.terriertrade.ui.model.toListingUi
@@ -75,7 +74,7 @@ class BrowseViewModel(
                     val time = now()
                     allListings = listings.mapNotNull { it.toListingUi(owners[it.ownerId], time) }
                     allWanted = listings
-                        .filter { it.type == DataListingType.WANTED }
+                        .filter { it.type == ListingType.WANTED }
                         .map { it.toWantedPostUi(owners[it.ownerId], time) }
                     uiState = uiState.copy(isLoading = false, errorMessage = null, favoriteIds = saved)
                     applyFilters()
@@ -86,7 +85,7 @@ class BrowseViewModel(
     fun onQueryChange(query: String) = update { copy(query = query) }
 
     /** Tapping the selected category again clears it. */
-    fun onCategorySelect(category: ListingCategory) =
+    fun onCategorySelect(category: Category) =
         update { copy(category = if (this.category == category) null else category) }
 
     /** "All" also clears the category, so it really shows everything. */

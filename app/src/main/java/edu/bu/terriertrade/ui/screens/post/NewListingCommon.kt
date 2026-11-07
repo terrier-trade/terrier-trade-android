@@ -9,24 +9,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.AddAPhoto
-import androidx.compose.material.icons.outlined.Book
-import androidx.compose.material.icons.outlined.Chair
-import androidx.compose.material.icons.outlined.Computer
-import androidx.compose.material.icons.outlined.ConfirmationNumber
-import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.QrCodeScanner
-import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.ui.components.TTActionTile
 import edu.bu.terriertrade.ui.components.TTBannerTone
@@ -35,6 +26,7 @@ import edu.bu.terriertrade.ui.components.TTInfoBanner
 import edu.bu.terriertrade.ui.components.TTPhotoThumb
 import edu.bu.terriertrade.ui.components.TTSectionCard
 import edu.bu.terriertrade.ui.components.TTTextField
+import edu.bu.terriertrade.ui.model.icon
 import edu.bu.terriertrade.ui.theme.Spacing
 
 /*
@@ -171,17 +163,6 @@ internal fun PriceUnitChips(
         optionLabel = { it.label },
     )
 }
-
-internal val Category.icon: ImageVector
-    get() = when (this) {
-        Category.BOOKS -> Icons.Outlined.Book
-        Category.FURNITURE -> Icons.Outlined.Chair
-        Category.TECH -> Icons.Outlined.Computer
-        Category.NOTES -> Icons.Outlined.Description
-        Category.TUTORING -> Icons.Outlined.School
-        Category.TICKETS -> Icons.Outlined.ConfirmationNumber
-        Category.OTHER -> Icons.Outlined.MoreHoriz
-    }
 
 internal val PriceUnit.label: String
     get() = when (this) {

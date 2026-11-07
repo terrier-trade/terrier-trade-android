@@ -1,5 +1,8 @@
 package edu.bu.terriertrade.ui.model
 
+import edu.bu.terriertrade.data.model.Category
+import edu.bu.terriertrade.data.model.ListingType
+
 /**
  * Placeholder content so screens work before the data layer is connected.
  * TODO(data): replace with the repository's listings, mapped to ListingUi.
@@ -16,7 +19,7 @@ object SampleData {
             title = "Calculus: Early Transcendentals",
             priceLabel = "$35",
             type = ListingType.ITEM,
-            category = ListingCategory.BOOKS,
+            category = Category.BOOKS,
             meetSpot = "Mugar Library",
             postedAgo = "2h",
             condition = "Like new",
@@ -29,7 +32,7 @@ object SampleData {
             title = "CS 330 tutoring",
             priceLabel = "$20/hr",
             type = ListingType.SERVICE,
-            category = ListingCategory.TUTORING,
+            category = Category.TUTORING,
             meetSpot = "CDS building",
             postedAgo = "3h",
             condition = "In person or online",
@@ -41,7 +44,7 @@ object SampleData {
             title = "BU Hockey vs BC",
             priceLabel = "$25 each",
             type = ListingType.TICKET,
-            category = ListingCategory.TICKETS,
+            category = Category.TICKETS,
             meetSpot = "Agganis Arena",
             postedAgo = "1d",
             condition = "2 left",
@@ -54,7 +57,7 @@ object SampleData {
             title = "Desk chair",
             priceLabel = "$40",
             type = ListingType.ITEM,
-            category = ListingCategory.FURNITURE,
+            category = Category.FURNITURE,
             meetSpot = "West Campus",
             postedAgo = "5h",
             condition = "Good",
@@ -66,7 +69,7 @@ object SampleData {
             title = "CS 111 study notes",
             priceLabel = "$10",
             type = ListingType.ITEM,
-            category = ListingCategory.NOTES,
+            category = Category.NOTES,
             meetSpot = "Mugar Library",
             postedAgo = "1d",
             condition = "Typed, 40 pages",
@@ -78,7 +81,7 @@ object SampleData {
             title = "TI-84 Plus calculator",
             priceLabel = "$45",
             type = ListingType.ITEM,
-            category = ListingCategory.TECH,
+            category = Category.TECH,
             meetSpot = "CDS building",
             postedAgo = "2d",
             condition = "Good",

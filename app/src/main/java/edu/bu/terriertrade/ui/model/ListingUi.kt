@@ -1,22 +1,7 @@
 package edu.bu.terriertrade.ui.model
 
-/** What kind of post it is. Shown as the tag on cards and as the type chips on Browse. */
-enum class ListingType(val label: String) {
-    ITEM("Item"),
-    SERVICE("Service"),
-    TICKET("Ticket"),
-}
-
-/** Categories shown as round icons on Browse. */
-enum class ListingCategory(val label: String) {
-    BOOKS("Books"),
-    FURNITURE("Furniture"),
-    TUTORING("Tutoring"),
-    TICKETS("Tickets"),
-    NOTES("Notes"),
-    TECH("Tech"),
-    OTHER("Other"),
-}
+import edu.bu.terriertrade.data.model.Category
+import edu.bu.terriertrade.data.model.ListingType
 
 /** The person selling a listing, ready to display. */
 data class SellerUi(
@@ -37,8 +22,9 @@ data class ListingUi(
     val id: String,
     val title: String,
     val priceLabel: String,
+    /** Never WANTED: wanted posts are shown as notes (WantedPostUi), not cards. */
     val type: ListingType,
-    val category: ListingCategory,
+    val category: Category,
     val meetSpot: String,
     val postedAgo: String,
     val condition: String,

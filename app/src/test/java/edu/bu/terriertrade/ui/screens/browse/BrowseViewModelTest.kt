@@ -9,7 +9,6 @@ import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.User
-import edu.bu.terriertrade.ui.model.ListingCategory
 import edu.bu.terriertrade.util.MainDispatcherRule
 import kotlinx.coroutines.flow.update
 import org.junit.Assert.assertEquals
@@ -118,9 +117,9 @@ class BrowseViewModelTest {
     @Test
     fun category_filtersAndTappingAgainClears() {
         val vm = viewModel()
-        vm.onCategorySelect(ListingCategory.BOOKS)
+        vm.onCategorySelect(Category.BOOKS)
         assertEquals(listOf("Calculus textbook"), vm.titles())
-        vm.onCategorySelect(ListingCategory.BOOKS)
+        vm.onCategorySelect(Category.BOOKS)
         assertNull(vm.uiState.category)
         assertEquals(4, vm.uiState.listings.size)
     }
@@ -128,7 +127,7 @@ class BrowseViewModelTest {
     @Test
     fun allChip_clearsCategory() {
         val vm = viewModel().apply {
-            onCategorySelect(ListingCategory.BOOKS)
+            onCategorySelect(Category.BOOKS)
             onFilterSelect(BrowseFilter.ALL)
         }
         assertNull(vm.uiState.category)

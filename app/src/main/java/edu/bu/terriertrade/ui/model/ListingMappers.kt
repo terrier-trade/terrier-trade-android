@@ -1,7 +1,7 @@
 package edu.bu.terriertrade.ui.model
 
-import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.User
 import edu.bu.terriertrade.util.TimeFormat
 import edu.bu.terriertrade.util.priceLabel
@@ -9,7 +9,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import edu.bu.terriertrade.data.model.ListingType as DataListingType
 
 /*
  * Turns the data layer's Listing and User into the display-ready models the screens use.
@@ -22,15 +21,10 @@ fun Listing.toListingUi(
     nowMillis: Long = System.currentTimeMillis(),
     zone: ZoneId = ZoneId.systemDefault(),
 ): ListingUi? {
-    val uiType = when (type) {
-        DataListingType.ITEM -> ListingType.ITEM
-        DataListingType.SERVICE -> ListingType.SERVICE
-        DataListingType.TICKET -> ListingType.TICKET
-        DataListingType.WANTED -> return null
-    }
+    if (type == ListingType.WANTED) return null
     val shortLine = when {
-        type == DataListingType.SERVICE -> serviceMode?.label ?: "Service"
-        type == DataListingType.TICKET -> quantity?.let { if (it == 1) "1 left" else "$it left" } ?: "Tickets"
+        type == ListingType.SERVICE -> serviceMode?.label ?: "Service"
+        type == ListingType.TICKET -> quantity?.let { if (it == 1) "1 left" else "$it left" } ?: "Tickets"
         else -> condition?.label ?: "Used"
     }
     val details = buildList {
@@ -41,9 +35,9 @@ fun Listing.toListingUi(
     return ListingUi(
         id = id,
         title = title,
-        priceLabel = if (type == DataListingType.TICKET) "${priceLabel()} each" else priceLabel(),
-        type = uiType,
-        category = category.toUi(),
+        priceLabel = if (type == ListingType.TICKET) "${priceLabel()} each" else priceLabel(),
+        type = type,
+        category = category,
         meetSpot = meetSpot.ifBlank { "On campus" },
         postedAgo = TimeFormat.ago(createdAt, nowMillis, zone),
         condition = shortLine,
@@ -84,16 +78,6 @@ fun User?.toSellerUi(): SellerUi =
             isVerified = verified,
         )
     }
-
-fun Category.toUi(): ListingCategory = when (this) {
-    Category.BOOKS -> ListingCategory.BOOKS
-    Category.FURNITURE -> ListingCategory.FURNITURE
-    Category.TUTORING -> ListingCategory.TUTORING
-    Category.TICKETS -> ListingCategory.TICKETS
-    Category.NOTES -> ListingCategory.NOTES
-    Category.TECH -> ListingCategory.TECH
-    Category.OTHER -> ListingCategory.OTHER
-}
 
 private val eventDateFormat = DateTimeFormatter.ofPattern("EEE MMM d, h:mm a", Locale.US)
 

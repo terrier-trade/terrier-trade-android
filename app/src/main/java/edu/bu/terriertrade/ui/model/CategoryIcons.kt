@@ -9,15 +9,16 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.outlined.MoreHoriz
+import edu.bu.terriertrade.data.model.Category
 
-/** The icon for each category, used on the round category buttons and listing pictures. */
-val ListingCategory.icon: ImageVector
+/** The icon for each category: the round buttons on Browse, listing cards and the New listing form. */
+val Category.icon: ImageVector
     get() = when (this) {
-        ListingCategory.BOOKS -> Icons.Outlined.Book
-        ListingCategory.FURNITURE -> Icons.Outlined.Chair
-        ListingCategory.TUTORING -> Icons.Outlined.School
-        ListingCategory.TICKETS -> Icons.Outlined.ConfirmationNumber
-        ListingCategory.NOTES -> Icons.Outlined.Description
-        ListingCategory.TECH -> Icons.Outlined.Computer
-        ListingCategory.OTHER -> Icons.Outlined.MoreHoriz
+        Category.BOOKS -> Icons.Outlined.Book
+        Category.FURNITURE -> Icons.Outlined.Chair
+        Category.TUTORING -> Icons.Outlined.School
+        Category.TICKETS -> Icons.Outlined.ConfirmationNumber
+        Category.NOTES -> Icons.Outlined.Description
+        Category.TECH -> Icons.Outlined.Computer
+        Category.OTHER -> Icons.Outlined.MoreHoriz
     }
