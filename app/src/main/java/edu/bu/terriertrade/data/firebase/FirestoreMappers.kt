@@ -98,6 +98,7 @@ internal fun chatFromMap(id: String, data: Map<String, Any?>?): Chat? {
     return Chat(
         id = id,
         participantIds = people,
+        deal = dealFromMap(data["deal"]),
         lastMessage = data.string("lastMessage"),
         updatedAt = data.long("updatedAt") ?: 0L,
     )
