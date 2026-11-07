@@ -38,6 +38,7 @@ fun TabDetailHost(
             ListingDetailRoute(
                 listingId = top.id,
                 onBack = pop,
+                onOpenChat = { /* Connected to the chat screen later */ },
                 onSellerClick = { open(TabDetail.User(it)) },
                 // One ViewModel per page, so going back shows the previous page straight away.
                 viewModel = viewModel(key = "listing:${top.id}", factory = ListingDetailViewModel.Factory),

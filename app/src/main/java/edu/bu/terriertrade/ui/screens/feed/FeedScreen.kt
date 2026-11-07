@@ -17,6 +17,7 @@ fun FeedScreen(modifier: Modifier = Modifier) {
         // The app frame already draws the red header on this tab, so Browse leaves it out.
         BrowseRoute(
             onListingClick = { open(TabDetail.Listing(it)) },
+            onOpenChat = { /* Connected to the chat screen later */ },
             showAppHeader = false,
             modifier = modifier,
         )

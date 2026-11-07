@@ -21,7 +21,12 @@ data class BrowseUiState(
     val listings: List<ListingUi> = emptyList(),
     val wanted: List<WantedPostUi> = emptyList(),
     val favoriteIds: Set<String> = emptySet(),
-    val requestedIds: Set<String> = emptySet(),
+    /** The listing or Looking for post whose request is being saved. Only one at a time. */
+    val requestingId: String? = null,
+    /** One-time message after a failed request. The screen shows it, then clears it. */
+    val requestError: String? = null,
+    /** One-time signal to open this chat. The screen opens it, then calls onChatOpened(). */
+    val openChatId: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     /** What's applied to the feed. */

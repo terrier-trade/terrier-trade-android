@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.User
+import edu.bu.terriertrade.data.repository.ChatRepository
 import edu.bu.terriertrade.data.repository.ListingRepository
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
@@ -33,6 +34,7 @@ class ListingDetailViewModel(
     private val listingRepository: ListingRepository,
     private val userRepository: UserRepository,
     private val savedRepository: SavedListingsRepository,
+    private val chatRepository: ChatRepository,
     private val now: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
 
@@ -42,11 +44,16 @@ class ListingDetailViewModel(
     private var loadedId: String? = null
     private var loadJob: Job? = null
 
+    // The real Listing behind the screen. The UI only gets ListingUi (display text),
+    // but a request needs the owner, price, type and status.
+    private var currentListing: Listing? = null
+
     fun load(listingId: String) {
         if (listingId == loadedId) return
         loadedId = listingId
         loadJob?.cancel()
         uiState = ListingDetailUiState()
+        currentListing = null
 
         loadJob = viewModelScope.launch {
             combine(observeWithOwner(listingId), savedRepository.observeSavedIds()) { (listing, owner), saved ->
@@ -54,6 +61,7 @@ class ListingDetailViewModel(
             }
                 .catch { uiState = uiState.copy(listing = null, notFound = true) }
                 .collect { (listing, owner, saved) ->
+                    currentListing = listing?.takeIf { it.status != ListingStatus.REMOVED }
                     val shown = listing?.takeIf { it.status != ListingStatus.REMOVED }?.toListingUi(owner, now())
                     uiState = uiState.copy(
                         listing = shown,
@@ -69,9 +77,33 @@ class ListingDetailViewModel(
         viewModelScope.launch { savedRepository.toggleSaved(id) }
     }
 
-    /** TODO(chat): open a chat with the seller through ChatRepository. */
+    /**
+     * Request (or "I can help" on a Looking for post). Opens or reuses the chat with the owner
+     * and starts a deal with this listing, then signals the screen to open the chat.
+     * See RequestRules for what happens when a deal already exists.
+     */
     fun onRequest() {
-        uiState = uiState.copy(requestSent = true)
+        val listing = currentListing ?: return
+        if (uiState.isRequesting) return // ignore double taps while saving
+
+        uiState = uiState.copy(isRequesting = true, requestError = null)
+        viewModelScope.launch {
+            chatRepository.requestListing(listing)
+                .onSuccess { result ->
+                    uiState = uiState.copy(isRequesting = false, openChatId = result.chatId)
+                }
+                .onFailure { error ->
+                    uiState = uiState.copy(
+                        isRequesting = false,
+                        requestError = error.message ?: "Couldn't send your request. Try again.",
+                    )
+                }
+        }
+    }
+
+    /** Called by the screen once it has opened the chat, so the signal fires only once. */
+    fun onChatOpened() {
+        uiState = uiState.copy(openChatId = null)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -88,6 +120,7 @@ class ListingDetailViewModel(
                     listingRepository = appContainer.listingRepository,
                     userRepository = appContainer.userRepository,
                     savedRepository = appContainer.savedListingsRepository,
+                    chatRepository = appContainer.chatRepository,
                 )
             }
         }
