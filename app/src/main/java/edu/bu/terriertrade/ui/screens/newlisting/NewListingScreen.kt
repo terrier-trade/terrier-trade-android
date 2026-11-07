@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.post
+package edu.bu.terriertrade.ui.screens.newlisting
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest

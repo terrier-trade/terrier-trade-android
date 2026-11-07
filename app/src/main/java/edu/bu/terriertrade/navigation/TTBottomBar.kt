@@ -45,7 +45,7 @@ fun TTBottomBar(
 @Composable
 private fun TTBottomBarPreview() {
     TTPreviewColumn {
-        TTBottomBar(currentRoute = Routes.FEED, onNavigate = {})
+        TTBottomBar(currentRoute = Routes.BROWSE, onNavigate = {})
         TTBottomBar(currentRoute = Routes.CHATS, onNavigate = {})
     }
 }

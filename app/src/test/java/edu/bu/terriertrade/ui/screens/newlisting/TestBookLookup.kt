@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.post
+package edu.bu.terriertrade.ui.screens.newlisting
 
 import edu.bu.terriertrade.data.model.BookInfo
 import edu.bu.terriertrade.data.repository.BookLookup

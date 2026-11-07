@@ -6,9 +6,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.bu.terriertrade.navigation.Routes
-import edu.bu.terriertrade.ui.screens.PlaceholderScreen
 import edu.bu.terriertrade.ui.screens.chat.ChatScreen
 import edu.bu.terriertrade.ui.screens.chats.ChatsScreen
+import edu.bu.terriertrade.ui.screens.placeholder.PlaceholderScreen
 
 /** Chat list, a single chat with its deal, and notifications. */
 fun NavGraphBuilder.chatScreens(navController: NavHostController) {

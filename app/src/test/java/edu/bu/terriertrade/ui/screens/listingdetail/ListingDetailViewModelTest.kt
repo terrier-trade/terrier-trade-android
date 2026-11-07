@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.listing
+package edu.bu.terriertrade.ui.screens.listingdetail
 
 import edu.bu.terriertrade.data.fake.FakeAuthRepository
 import edu.bu.terriertrade.data.fake.FakeChatRepository

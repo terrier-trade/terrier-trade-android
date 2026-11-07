@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.post
+package edu.bu.terriertrade.ui.screens.newlisting
 
 import android.Manifest
 import android.content.pm.PackageManager

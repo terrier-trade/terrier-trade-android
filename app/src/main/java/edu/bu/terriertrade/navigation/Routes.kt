@@ -3,8 +3,8 @@ package edu.bu.terriertrade.navigation
 /** Every screen's route string lives here. Never type a route string anywhere else. */
 object Routes {
     // Bottom bar tabs
-    const val FEED = "feed"
-    const val POST = "post"
+    const val BROWSE = "browse"
+    const val NEW_LISTING = "new_listing"
     const val CHATS = "chats"
     const val PROFILE = "profile"
 

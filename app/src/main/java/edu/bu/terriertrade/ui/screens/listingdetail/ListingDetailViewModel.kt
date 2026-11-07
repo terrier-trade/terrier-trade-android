@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.listing
+package edu.bu.terriertrade.ui.screens.listingdetail
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

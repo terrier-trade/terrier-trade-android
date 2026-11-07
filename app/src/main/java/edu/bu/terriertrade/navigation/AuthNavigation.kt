@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.auth
+package edu.bu.terriertrade.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -9,7 +9,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import edu.bu.terriertrade.di.rememberAppContainer
-import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.navigation.TopLevelDestination
 
 /*
@@ -21,7 +20,7 @@ import edu.bu.terriertrade.navigation.TopLevelDestination
 @Composable
 fun rememberStartRoute(): String {
     val auth = rememberAppContainer().authRepository
-    return remember { if (auth.currentUserId.value != null) Routes.FEED else Routes.WELCOME }
+    return remember { if (auth.currentUserId.value != null) Routes.BROWSE else Routes.WELCOME }
 }
 
 /** After signing out from anywhere, go back to Welcome so Back can't return to the old account. */
@@ -52,7 +51,7 @@ fun SignedOutRedirect(navController: NavHostController) {
 
 /** Opens Browse and clears the sign-in screens, so Back from Browse leaves the app. */
 fun NavHostController.openHomeAfterSignIn() {
-    navigate(Routes.FEED) {
+    navigate(Routes.BROWSE) {
         popUpTo(graph.id) { inclusive = true }
         launchSingleTop = true
     }

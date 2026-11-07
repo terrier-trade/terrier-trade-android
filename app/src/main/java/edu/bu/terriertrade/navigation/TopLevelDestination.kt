@@ -18,8 +18,8 @@ enum class TopLevelDestination(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 ) {
-    FEED(Routes.FEED, "Browse", Icons.Filled.Home, Icons.Outlined.Home),
-    POST(Routes.POST, "Sell", Icons.Filled.AddCircle, Icons.Outlined.AddCircle),
+    BROWSE(Routes.BROWSE, "Browse", Icons.Filled.Home, Icons.Outlined.Home),
+    NEW_LISTING(Routes.NEW_LISTING, "Sell", Icons.Filled.AddCircle, Icons.Outlined.AddCircle),
     CHATS(Routes.CHATS, "Chats", Icons.Filled.Email, Icons.Outlined.Email),
     PROFILE(Routes.PROFILE, "Profile", Icons.Filled.Person, Icons.Outlined.Person),
 }

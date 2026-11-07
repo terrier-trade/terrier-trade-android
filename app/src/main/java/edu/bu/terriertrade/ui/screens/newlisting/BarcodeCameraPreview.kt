@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.post
+package edu.bu.terriertrade.ui.screens.newlisting
 
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage

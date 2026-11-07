@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens
+package edu.bu.terriertrade.ui.screens.placeholder
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
