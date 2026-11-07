@@ -8,8 +8,8 @@ import edu.bu.terriertrade.data.fake.FakeUserRepository
 import edu.bu.terriertrade.data.model.Message
 import edu.bu.terriertrade.data.model.MessageType
 import edu.bu.terriertrade.navigation.Routes
+import edu.bu.terriertrade.testing.MainDispatcherRule
 import edu.bu.terriertrade.ui.common.UiState
-import edu.bu.terriertrade.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -20,6 +20,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * One chat: loading the partner, messages and deal bar, sending messages, and how request lines read
+ * for each person.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
 

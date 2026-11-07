@@ -12,6 +12,10 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.ZoneOffset
 
+/**
+ * Listing to card text. Each post type has its own price and detail line, and wanted posts become
+ * notes instead of cards.
+ */
 class ListingMappersTest {
 
     private val now = 1_800_000_000_000L

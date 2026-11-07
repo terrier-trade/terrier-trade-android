@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
+/** The password rules the sign-up form checks before anything is sent to Firebase. */
 class PasswordRulesTest {
 
     @Test

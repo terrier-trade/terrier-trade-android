@@ -1,9 +1,5 @@
-package edu.bu.terriertrade.data
+package edu.bu.terriertrade.data.fake
 
-import edu.bu.terriertrade.data.fake.FakeAuthRepository
-import edu.bu.terriertrade.data.fake.FakeChatRepository
-import edu.bu.terriertrade.data.fake.FakeListingRepository
-import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.ListingType
@@ -14,6 +10,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * The fakes behave like Firestore in the ways the screens rely on, so ViewModel tests built on them
+ * can be trusted.
+ */
 class FakeRepositoriesTest {
 
     private val auth = FakeAuthRepository()

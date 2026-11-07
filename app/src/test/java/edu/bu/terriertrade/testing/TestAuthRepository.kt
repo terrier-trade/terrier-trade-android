@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.ui.screens.auth
+package edu.bu.terriertrade.testing
 
 import edu.bu.terriertrade.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow

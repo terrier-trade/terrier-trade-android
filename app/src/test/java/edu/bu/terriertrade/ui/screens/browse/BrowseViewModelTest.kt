@@ -9,7 +9,10 @@ import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.User
-import edu.bu.terriertrade.util.MainDispatcherRule
+import edu.bu.terriertrade.testing.InMemoryListingRepository
+import edu.bu.terriertrade.testing.InMemorySavedRepository
+import edu.bu.terriertrade.testing.InMemoryUserRepository
+import edu.bu.terriertrade.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.update
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,6 +22,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Browse: loading and sorting listings, the type chips, categories and search, hearts, and Request
+ * opening a chat.
+ */
 class BrowseViewModelTest {
 
     @get:Rule

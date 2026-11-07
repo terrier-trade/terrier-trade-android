@@ -16,6 +16,10 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Model to Firestore fields and back. Firestore returns numbers as Long and old documents can have odd
+ * values, so reading must never crash.
+ */
 class FirestoreMappersTest {
 
     @Test

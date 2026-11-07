@@ -1,12 +1,18 @@
 package edu.bu.terriertrade.ui.screens.auth
 
-import edu.bu.terriertrade.util.MainDispatcherRule
+import edu.bu.terriertrade.testing.MainDispatcherRule
+import edu.bu.terriertrade.testing.TestAuthRepository
+import edu.bu.terriertrade.testing.TestPasswordReset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Sign in and Forgot password. TestAuthRepository and TestPasswordReset let each test choose what
+ * Firebase answers and check what was called.
+ */
 class LoginViewModelTest {
 
     @get:Rule

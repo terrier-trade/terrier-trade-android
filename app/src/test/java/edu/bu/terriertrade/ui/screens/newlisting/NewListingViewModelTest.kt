@@ -5,7 +5,9 @@ import edu.bu.terriertrade.data.model.Condition
 import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.ServiceMode
-import edu.bu.terriertrade.util.MainDispatcherRule
+import edu.bu.terriertrade.testing.MainDispatcherRule
+import edu.bu.terriertrade.testing.TestBookLookup
+import edu.bu.terriertrade.testing.TestListingRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -13,6 +15,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * The New listing form for all four post types: validation, photos, the ISBN scan, and exactly what
+ * gets saved.
+ */
 class NewListingViewModelTest {
 
     @get:Rule

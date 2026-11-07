@@ -4,6 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
+/**
+ * The scanner passes along whatever barcode it reads. Only real ISBNs with a correct check digit
+ * should reach Open Library.
+ */
 class IsbnTest {
 
     @Test

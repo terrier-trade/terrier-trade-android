@@ -1,6 +1,7 @@
 package edu.bu.terriertrade.ui.screens.auth
 
-import edu.bu.terriertrade.util.MainDispatcherRule
+import edu.bu.terriertrade.testing.MainDispatcherRule
+import edu.bu.terriertrade.testing.TestAuthRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -8,6 +9,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * The Create account form: each field's validation, then what submit does (create the account, send
+ * the email, or show an error).
+ */
 class SignUpViewModelTest {
 
     @get:Rule

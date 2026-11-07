@@ -7,7 +7,7 @@ import edu.bu.terriertrade.data.fake.FakeReviewRepository
 import edu.bu.terriertrade.data.fake.FakeSavedListingsRepository
 import edu.bu.terriertrade.data.fake.FakeUserRepository
 import edu.bu.terriertrade.data.fake.SampleData
-import edu.bu.terriertrade.util.MainDispatcherRule
+import edu.bu.terriertrade.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

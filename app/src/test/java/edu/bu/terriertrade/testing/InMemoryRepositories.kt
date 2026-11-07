@@ -1,9 +1,11 @@
-package edu.bu.terriertrade.ui.screens.browse
+package edu.bu.terriertrade.testing
 
 import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.ListingStatus
+import edu.bu.terriertrade.data.model.Review
 import edu.bu.terriertrade.data.model.User
 import edu.bu.terriertrade.data.repository.ListingRepository
+import edu.bu.terriertrade.data.repository.ReviewRepository
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,8 +14,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 /*
- * Small in-memory repositories for Browse and Listing detail tests.
- * Change `listings` / `users` in a test and the screens update, like with Firestore.
+ * Small in-memory repositories for ViewModel tests.
+ * Each one keeps its data in a MutableStateFlow, so changing `listings`, `users`, `saved` or `reviews`
+ * in a test updates the screen the same way a Firestore snapshot would.
  */
 
 class InMemoryListingRepository(initial: List<Listing> = emptyList()) : ListingRepository {
@@ -62,5 +65,21 @@ class InMemorySavedRepository(initial: Set<String> = emptySet()) : SavedListings
 
     override suspend fun toggleSaved(listingId: String) {
         saved.update { if (listingId in it) it - listingId else it + listingId }
+    }
+}
+
+/**
+ * Reviews kept in memory. observeReviewsFor returns only the reviews about that student, newest first,
+ * like the Firestore query.
+ */
+class InMemoryReviewRepository(initial: List<Review> = emptyList()) : ReviewRepository {
+    val reviews = MutableStateFlow(initial)
+
+    override fun observeReviewsFor(userId: String): Flow<List<Review>> =
+        reviews.map { all -> all.filter { it.toUserId == userId }.sortedByDescending { it.createdAt } }
+
+    override suspend fun addReview(review: Review): Result<Unit> {
+        reviews.update { it + review }
+        return Result.success(Unit)
     }
 }
