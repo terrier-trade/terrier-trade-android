@@ -9,6 +9,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Covers every branch of RequestRules.plan(): starting a deal, own or sold listings,
+ * an item already in the deal, and a deal already in progress with other items.
+ * These rules decide what a Request does, so each case has its own test.
+ */
 class RequestRulesTest {
 
     private val me = "alex"

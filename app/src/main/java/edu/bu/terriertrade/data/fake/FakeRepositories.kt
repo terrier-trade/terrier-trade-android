@@ -13,6 +13,10 @@ import edu.bu.terriertrade.data.repository.ListingRepository
 import edu.bu.terriertrade.data.repository.ReviewRepository
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
+import edu.bu.terriertrade.data.deal.RequestOutcome
+import edu.bu.terriertrade.data.deal.RequestPlan
+import edu.bu.terriertrade.data.deal.RequestResult
+import edu.bu.terriertrade.data.deal.RequestRules
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -142,6 +146,40 @@ class FakeChatRepository(private val auth: AuthRepository) : ChatRepository {
         )
         chats.update { it + chat }
         return Result.success(chat.id)
+    }
+
+    override suspend fun requestListing(listing: Listing): Result<RequestResult> {
+        val me = auth.currentUserId.value ?: return Result.failure(notSignedIn())
+
+        // Check own or sold listings before creating a chat
+        val check = RequestRules.plan(listing, me, currentDeal = null)
+        if (check is RequestPlan.NotAllowed) return Result.failure(IllegalStateException(check.reason))
+
+        val chatId = openChatWith(listing.ownerId).getOrElse { return Result.failure(it) }
+        val chat = chats.value.first { it.id == chatId }
+
+        val outcome = when (val plan = RequestRules.plan(listing, me, chat.deal)) {
+            is RequestPlan.NotAllowed -> return Result.failure(IllegalStateException(plan.reason))
+            RequestPlan.AlreadyInDeal -> RequestOutcome.ALREADY_IN_DEAL
+            RequestPlan.DealInProgress -> RequestOutcome.DEAL_IN_PROGRESS
+            is RequestPlan.StartDeal -> {
+                val now = System.currentTimeMillis()
+                messages.update {
+                    it + Message("m${nextId++}", chatId, me, MessageType.REQUEST, plan.actionText, createdAt = now)
+                }
+                chats.update { all ->
+                    all.map {
+                        if (it.id == chatId) {
+                            it.copy(deal = plan.deal, lastMessage = RequestRules.previewText(listing), updatedAt = now)
+                        } else {
+                            it
+                        }
+                    }
+                }
+                RequestOutcome.STARTED_DEAL
+            }
+        }
+        return Result.success(RequestResult(chatId, outcome))
     }
 }
 

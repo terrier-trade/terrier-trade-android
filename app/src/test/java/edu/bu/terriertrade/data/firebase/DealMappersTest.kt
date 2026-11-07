@@ -8,6 +8,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
+/**
+ * Checks the deal survives the trip to Firestore and back. Firestore returns numbers as Long
+ * and old or hand-edited data can be broken, so reading must convert safely and never crash.
+ */
 class DealMappersTest {
 
     private val deal = Deal(

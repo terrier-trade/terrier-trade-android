@@ -7,6 +7,8 @@ import edu.bu.terriertrade.data.fake.FakeListingRepository
 import edu.bu.terriertrade.data.fake.FakeUserRepository
 import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.data.model.DealItem
+import edu.bu.terriertrade.data.model.Message
+import edu.bu.terriertrade.data.model.MessageType
 import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.ui.common.UiState
 import edu.bu.terriertrade.util.MainDispatcherRule
@@ -111,5 +113,19 @@ class ChatViewModelTest {
         assertEquals(28, dealTotal(listOf(DealItem("l3", 40), DealItem("m1", 12)), listings, me))
         // Sam is Looking for a textbook and I provide it, so Sam pays me
         assertEquals(-30, dealTotal(listOf(DealItem("l6", 30)), listings, me))
+    }
+
+    @Test
+    fun requestMessage_saysYouOrTheirName() {
+        val request = Message(
+            "r1",
+            "c1",
+            senderId = "sam",
+            type = MessageType.REQUEST,
+            text = "requested Desk lamp"
+        )
+
+        assertEquals("Sam requested Desk lamp", request.toUi(myId = "alex", partnerFirstName = "Sam", nowMillis = 0L).text)
+        assertEquals("You requested Desk lamp", request.toUi(myId = "sam", partnerFirstName = "Alex", nowMillis = 0L).text)
     }
 }
