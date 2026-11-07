@@ -84,7 +84,7 @@ internal fun reviewFromMap(id: String, data: Map<String, Any?>?): Review? {
 
 // Chats -----------------------------------------------------------------------------------------
 
-/** TODO(deals): the deal inside a chat isn't saved yet; it arrives with the chat screens. */
+/** Fields for a new chat. The deal is added later by requestListing. */
 internal fun chatToMap(participantIds: List<String>, lastMessage: String, updatedAt: Long): Map<String, Any?> = mapOf(
     "participantIds" to participantIds.distinct().sorted(),
     "lastMessage" to lastMessage,

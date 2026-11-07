@@ -14,8 +14,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Blush box with a label, standing in for a listing photo.
- * TODO(photos): show the real image here once listings have photo URLs.
+ * Blush box with a label, shown when a listing has no photo.
  */
 @Composable
 fun TTPhotoPlaceholder(

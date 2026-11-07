@@ -23,7 +23,7 @@ import kotlinx.coroutines.tasks.await
 /**
  * The real ChatRepository: chats live at chats/{chatId}, messages at chats/{chatId}/messages.
  * Only the two students in a chat can read it (firestore.rules).
- * TODO(deals): deals inside a chat are saved with the chat screens, later.
+ * A request saves its deal on the chat document and its REQUEST message in one transaction.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class FirestoreChatRepository(
