@@ -1,5 +1,6 @@
 package edu.bu.terriertrade.ui.screens.browse
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,14 +51,33 @@ import edu.bu.terriertrade.ui.components.joinAppHeader
 @Composable
 fun BrowseRoute(
     onListingClick: (listingId: String) -> Unit,
+    onOpenChat: (chatId: String) -> Unit,
     modifier: Modifier = Modifier,
     onNotificationsClick: () -> Unit = {},
-    onHelpClick: (wantedId: String) -> Unit = {},
     showAppHeader: Boolean = true,
     viewModel: BrowseViewModel = viewModel(factory = BrowseViewModel.Factory),
 ) {
     // Back clears search and chips first, then leaves Browse.
     BackHandler(enabled = viewModel.uiState.hasActiveFilters) { viewModel.clearFilters() }
+
+    // When a request succeeds, open the chat once and clear the signal
+    val openChatId = viewModel.uiState.openChatId
+    LaunchedEffect(openChatId) {
+        if (openChatId != null) {
+            onOpenChat(openChatId)
+            viewModel.onChatOpened()
+        }
+    }
+
+    // When a request fails, show the reason briefly, then clear it
+    val context = LocalContext.current
+    val requestError = viewModel.uiState.requestError
+    LaunchedEffect(requestError) {
+        if (requestError != null) {
+            Toast.makeText(context, requestError, Toast.LENGTH_SHORT).show()
+            viewModel.onRequestErrorShown()
+        }
+    }
 
     BrowseScreen(
         uiState = viewModel.uiState,
@@ -65,7 +87,7 @@ fun BrowseRoute(
         onToggleFavorite = viewModel::onToggleFavorite,
         onRequest = viewModel::onRequest,
         onListingClick = onListingClick,
-        onHelpClick = onHelpClick,
+        onHelpClick = viewModel::onRequest, // "I can help" is a request on a Looking for post
         onNotificationsClick = onNotificationsClick,
         onRetry = viewModel::load,
         onFilterClick = viewModel::onOpenFilters,
@@ -253,7 +275,7 @@ private fun BrowseFeed(
                     modifier = sidePadding,
                     isFavorite = listing.id in uiState.favoriteIds,
                     onToggleFavorite = { onToggleFavorite(listing.id) },
-                    isRequested = listing.id in uiState.requestedIds,
+                    isRequested = listing.id == uiState.requestingId,
                     onRequest = { onRequest(listing.id) },
                 )
             }

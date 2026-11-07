@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MarkChatUnread
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,12 +25,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import edu.bu.terriertrade.ui.components.TTBackButton
-import edu.bu.terriertrade.ui.components.TTBannerTone
 import edu.bu.terriertrade.ui.components.TTBottomActions
 import edu.bu.terriertrade.ui.components.TTEmptyState
+import edu.bu.terriertrade.ui.components.TTErrorText
 import edu.bu.terriertrade.ui.components.TTFactGrid
 import edu.bu.terriertrade.ui.components.TTFavoriteButton
-import edu.bu.terriertrade.ui.components.TTInfoBanner
 import edu.bu.terriertrade.ui.components.TTLoadingState
 import edu.bu.terriertrade.ui.components.TTPhotoPlaceholder
 import edu.bu.terriertrade.ui.components.TTPriceText
@@ -49,10 +46,21 @@ import edu.bu.terriertrade.ui.model.SampleData
 fun ListingDetailRoute(
     listingId: String,
     onBack: () -> Unit,
+    onOpenChat: (chatId: String) -> Unit,
     onSellerClick: ((sellerId: String) -> Unit)? = null,
     viewModel: ListingDetailViewModel = viewModel(factory = ListingDetailViewModel.Factory),
 ) {
     LaunchedEffect(listingId) { viewModel.load(listingId) }
+
+    // When the ViewModel says a chat is ready, open it once and clear the signal
+    val openChatId = viewModel.uiState.openChatId
+    LaunchedEffect(openChatId) {
+        if (openChatId != null) {
+            onOpenChat(openChatId)
+            viewModel.onChatOpened()
+        }
+    }
+
     ListingDetailScreen(
         uiState = viewModel.uiState,
         onBack = onBack,
@@ -94,7 +102,8 @@ fun ListingDetailScreen(
             else -> ListingDetailContent(
                 listing = listing,
                 isFavorite = uiState.isFavorite,
-                requestSent = uiState.requestSent,
+                isRequesting = uiState.isRequesting,
+                requestError = uiState.requestError,
                 onBack = onBack,
                 onToggleFavorite = onToggleFavorite,
                 onRequest = onRequest,
@@ -108,7 +117,8 @@ fun ListingDetailScreen(
 private fun ListingDetailContent(
     listing: ListingUi,
     isFavorite: Boolean,
-    requestSent: Boolean,
+    isRequesting: Boolean,
+    requestError: String?,
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onRequest: () -> Unit,
@@ -174,19 +184,13 @@ private fun ListingDetailContent(
         }
 
         TTBottomActions {
-            if (requestSent) {
-                TTInfoBanner(
-                    text = "Request sent. A chat opens once ${listing.seller.name} accepts.",
-                    tone = TTBannerTone.Success,
-                    icon = Icons.Outlined.MarkChatUnread,
-                )
-            } else {
-                TTPrimaryButton(
-                    text = "Request item",
-                    onClick = onRequest,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            TTErrorText(message = requestError)
+            TTPrimaryButton(
+                text = "Request item",
+                onClick = onRequest,
+                loading = isRequesting,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
@@ -207,7 +211,7 @@ private fun ListingDetailScreenPreview() {
 private fun ListingDetailRequestedPreview() {
     TerrierTradeTheme {
         ListingDetailScreen(
-            uiState = ListingDetailUiState(listing = SampleData.listings.first(), isFavorite = true, requestSent = true),
+            uiState = ListingDetailUiState(listing = SampleData.listings.first(), isFavorite = true, isRequesting = true),
             onBack = {}, onToggleFavorite = {}, onRequest = {},
         )
     }

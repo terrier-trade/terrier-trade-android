@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import edu.bu.terriertrade.di.rememberAppContainer
 import edu.bu.terriertrade.navigation.Routes
+import edu.bu.terriertrade.navigation.TopLevelDestination
 
 /*
  * Small helpers so the sign-in flow can be wired with a few lines in navigation.
@@ -39,6 +40,11 @@ fun SignedOutRedirect(navController: NavHostController) {
                     popUpTo(navController.graph.id) { inclusive = true }
                     launchSingleTop = true
                 }
+                // popUpTo only clears the screens on the back stack. Tabs you left earlier were
+                // saved by navigateToTopLevel (saveState = true), ViewModels included, and
+                // restoreState would hand them to the next account. Drop them so the next
+                // student starts with fresh tabs.
+                TopLevelDestination.entries.forEach { navController.clearBackStack(it.route) }
             }
         }
     }

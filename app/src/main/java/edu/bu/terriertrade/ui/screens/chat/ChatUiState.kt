@@ -71,6 +71,11 @@ fun Message.toUi(myId: String, partnerFirstName: String, nowMillis: Long): Messa
             timeLabel = time,
         )
         MessageType.EVENT -> MessageUi(id = id, text = text, kind = MessageKind.EVENT)
+        MessageType.REQUEST -> MessageUi(
+            id = id,
+            text = (if (senderId == myId) "You" else partnerFirstName) + " " + text,
+            kind = MessageKind.EVENT,
+        )
         MessageType.SUGGESTION -> MessageUi(
             id = id,
             text = if (senderId == myId) "You suggested changes to the deal"

@@ -7,6 +7,11 @@ import edu.bu.terriertrade.data.model.Chat
 import edu.bu.terriertrade.data.model.Message
 import edu.bu.terriertrade.data.model.MessageType
 import edu.bu.terriertrade.data.repository.ChatRepository
+import edu.bu.terriertrade.data.deal.RequestOutcome
+import edu.bu.terriertrade.data.deal.RequestPlan
+import edu.bu.terriertrade.data.deal.RequestResult
+import edu.bu.terriertrade.data.deal.RequestRules
+import edu.bu.terriertrade.data.model.Listing
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -79,6 +84,47 @@ class FirestoreChatRepository(
             val doc = chats.document()
             doc.set(chatToMap(listOf(me, partnerId), lastMessage = "", updatedAt = System.currentTimeMillis())).await()
             doc.id
+        }
+
+    override suspend fun requestListing(listing: Listing): Result<RequestResult> =
+        firestoreResult("Couldn't send your request. Try again.") {
+            val me = signedInUidOrThrow(auth)
+
+            // Check own or sold listings before creating a chat
+            val check = RequestRules.plan(listing, me, currentDeal = null)
+            if (check is RequestPlan.NotAllowed) throw DataError(check.reason)
+
+            val chatId = openChatWith(listing.ownerId).getOrThrow()
+            val chatRef = chats.document(chatId)
+            val messageRef = chatRef.collection(MESSAGES).document()
+
+            // All or nothing: read the latest deal, then save the deal and the message together
+            val outcome = db.runTransaction { transaction ->
+                val snapshot = transaction.get(chatRef)
+                val currentDeal = dealFromMap(snapshot.get("deal"))
+
+                when (val plan = RequestRules.plan(listing, me, currentDeal)) {
+                    is RequestPlan.NotAllowed -> error(plan.reason)
+                    RequestPlan.AlreadyInDeal -> RequestOutcome.ALREADY_IN_DEAL
+                    RequestPlan.DealInProgress -> RequestOutcome.DEAL_IN_PROGRESS
+                    is RequestPlan.StartDeal -> {
+                        val now = System.currentTimeMillis()
+                        val message = Message(messageRef.id, chatId, me, MessageType.REQUEST, plan.actionText, createdAt = now)
+                        transaction.set(messageRef, message.toMap())
+                        transaction.update(
+                            chatRef,
+                            mapOf(
+                                "deal" to plan.deal.toMap(),
+                                "lastMessage" to RequestRules.previewText(listing),
+                                "updatedAt" to now,
+                            ),
+                        )
+                        RequestOutcome.STARTED_DEAL
+                    }
+                }
+            }.await()
+
+            RequestResult(chatId, outcome)
         }
 
     companion object {

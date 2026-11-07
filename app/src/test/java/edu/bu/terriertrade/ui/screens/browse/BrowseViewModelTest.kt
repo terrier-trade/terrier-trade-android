@@ -1,5 +1,7 @@
 package edu.bu.terriertrade.ui.screens.browse
 
+import edu.bu.terriertrade.data.fake.FakeAuthRepository
+import edu.bu.terriertrade.data.fake.FakeChatRepository
 import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Condition
 import edu.bu.terriertrade.data.model.Listing
@@ -12,6 +14,7 @@ import edu.bu.terriertrade.util.MainDispatcherRule
 import kotlinx.coroutines.flow.update
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -52,8 +55,11 @@ class BrowseViewModelTest {
     private val userRepo = InMemoryUserRepository(listOf(maya))
     private val savedRepo = InMemorySavedRepository()
 
-    private fun viewModel() = BrowseViewModel(listingRepo, userRepo, savedRepo, now = { now })
+    // Signed in as "alex". The sample chats already include one with Maya ("c_maya") and none with Leo.
+    private val auth = FakeAuthRepository()
+    private val chatRepo = FakeChatRepository(auth)
 
+    private fun viewModel() = BrowseViewModel(listingRepo, userRepo, savedRepo, chatRepo, now = { now })
     private fun BrowseViewModel.titles() = uiState.listings.map { it.title }
 
     @Test
@@ -156,9 +162,45 @@ class BrowseViewModelTest {
         assertFalse("2" in vm.uiState.favoriteIds)
     }
 
+    /** Request on a card reuses the existing chat with the seller and signals the screen to open it. */
     @Test
-    fun request_marksListingRequested() {
+    fun request_signalsTheChatToOpen() {
+        val vm = viewModel()
+
+        vm.onRequest("1") // Maya's textbook
+
+        assertEquals("c_maya", vm.uiState.openChatId)
+        assertNull(vm.uiState.requestingId)
+    }
+
+    /** "I can help" on a Looking for note goes through the same request. */
+    @Test
+    fun iCanHelp_onLookingForPost_opensChat() {
+        val vm = viewModel()
+
+        vm.onRequest("w1") // Maya is looking for a math tutor
+
+        assertEquals("c_maya", vm.uiState.openChatId)
+    }
+
+    /** Requesting from someone you haven't talked to yet creates a new chat. */
+    @Test
+    fun request_newSeller_createsChat() {
+        val vm = viewModel()
+
+        vm.onRequest("4") // Leo's desk chair, no chat with Leo in the sample data
+
+        assertNotNull(vm.uiState.openChatId)
+        assertTrue(vm.uiState.openChatId != "c_maya")
+    }
+
+    /** Once the screen has opened the chat, the signal is cleared. */
+    @Test
+    fun chatOpened_clearsTheSignal() {
         val vm = viewModel().apply { onRequest("1") }
-        assertTrue("1" in vm.uiState.requestedIds)
+
+        vm.onChatOpened()
+
+        assertNull(vm.uiState.openChatId)
     }
 }

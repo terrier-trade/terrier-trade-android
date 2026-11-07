@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.outlined.MarkChatRead
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,10 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.ui.components.TTBackButton
-import edu.bu.terriertrade.ui.components.TTBannerTone
 import edu.bu.terriertrade.ui.components.TTBottomActions
 import edu.bu.terriertrade.ui.components.TTEmptyState
-import edu.bu.terriertrade.ui.components.TTInfoBanner
+import edu.bu.terriertrade.ui.components.TTErrorText
 import edu.bu.terriertrade.ui.components.TTListingRow
 import edu.bu.terriertrade.ui.components.TTLoadingState
 import edu.bu.terriertrade.ui.components.TTPrimaryButton
@@ -44,9 +42,20 @@ fun UserProfileRoute(
     userId: String,
     onBack: () -> Unit,
     onListingClick: (listingId: String) -> Unit,
+    onOpenChat: (chatId: String) -> Unit,
     viewModel: UserProfileViewModel = viewModel(factory = UserProfileViewModel.Factory),
 ) {
     LaunchedEffect(userId) { viewModel.load(userId) }
+
+    // When the chat is ready, open it once and clear the signal
+    val openChatId = viewModel.uiState.openChatId
+    LaunchedEffect(openChatId) {
+        if (openChatId != null) {
+            onOpenChat(openChatId)
+            viewModel.onChatOpened()
+        }
+    }
+
     UserProfileScreen(
         uiState = viewModel.uiState,
         onBack = onBack,
@@ -100,9 +109,7 @@ fun UserProfileScreen(
                     )
                     if (!uiState.isMe) {
                         TTBottomActions {
-                            uiState.chatMessage?.let {
-                                TTInfoBanner(text = it, tone = TTBannerTone.Success, icon = Icons.Outlined.MarkChatRead)
-                            }
+                            TTErrorText(message = uiState.chatError)
                             TTPrimaryButton(
                                 text = "Open chat with ${uiState.firstName}",
                                 onClick = onOpenChat,

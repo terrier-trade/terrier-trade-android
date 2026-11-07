@@ -19,6 +19,9 @@ enum class MessageType {
     /** Gray system line such as "You requested TI-84 calculator". */
     EVENT,
 
+    /** "requested TI-84 calculator". The screen adds "You" or the sender's name in front. */
+    REQUEST,
+
     /** A deal change waiting for accept or decline. Links to [Message.proposalId]. */
     SUGGESTION,
 

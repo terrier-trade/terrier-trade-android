@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.ListingType as DataListingType
 import edu.bu.terriertrade.data.model.User
+import edu.bu.terriertrade.data.repository.ChatRepository
 import edu.bu.terriertrade.data.repository.ListingRepository
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
@@ -38,6 +39,7 @@ class BrowseViewModel(
     private val listingRepository: ListingRepository,
     private val userRepository: UserRepository,
     private val savedRepository: SavedListingsRepository,
+    private val chatRepository: ChatRepository,
     private val now: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
 
@@ -46,6 +48,9 @@ class BrowseViewModel(
 
     private var allListings: List<ListingUi> = emptyList()
     private var allWanted: List<WantedPostUi> = emptyList()
+    // Real listings by id (including Looking for posts). The feed shows ListingUi and WantedPostUi,
+    // but a request needs the real Listing: owner, price, type and status.
+    private var listingsById: Map<String, Listing> = emptyMap()
     private var loadJob: Job? = null
 
     init {
@@ -66,6 +71,7 @@ class BrowseViewModel(
                 }
                 .collect { (feed, saved) ->
                     val (listings, owners) = feed
+                    listingsById = listings.associateBy { it.id }
                     val time = now()
                     allListings = listings.mapNotNull { it.toListingUi(owners[it.ownerId], time) }
                     allWanted = listings
@@ -120,9 +126,37 @@ class BrowseViewModel(
         viewModelScope.launch { savedRepository.toggleSaved(listingId) }
     }
 
-    /** TODO(chat): open a chat with the seller through ChatRepository. */
+    /**
+     * Request on a listing card, or "I can help" on a Looking for note (those are listings too).
+     * Opens or reuses the chat with the owner and starts a deal, then signals the screen to open it.
+     */
     fun onRequest(listingId: String) {
-        uiState = uiState.copy(requestedIds = uiState.requestedIds + listingId)
+        val listing = listingsById[listingId] ?: return
+        if (uiState.requestingId != null) return // one request at a time, ignores double taps
+
+        uiState = uiState.copy(requestingId = listingId, requestError = null)
+        viewModelScope.launch {
+            chatRepository.requestListing(listing)
+                .onSuccess { result ->
+                    uiState = uiState.copy(requestingId = null, openChatId = result.chatId)
+                }
+                .onFailure { error ->
+                    uiState = uiState.copy(
+                        requestingId = null,
+                        requestError = error.message ?: "Couldn't send your request. Try again.",
+                    )
+                }
+        }
+    }
+
+    /** Called by the screen once it has opened the chat, so the signal fires only once. */
+    fun onChatOpened() {
+        uiState = uiState.copy(openChatId = null)
+    }
+
+    /** Called by the screen once it has shown the error, so it isn't shown again. */
+    fun onRequestErrorShown() {
+        uiState = uiState.copy(requestError = null)
     }
 
     private fun update(change: BrowseUiState.() -> BrowseUiState) {
@@ -158,6 +192,7 @@ class BrowseViewModel(
                     listingRepository = appContainer.listingRepository,
                     userRepository = appContainer.userRepository,
                     savedRepository = appContainer.savedListingsRepository,
+                    chatRepository = appContainer.chatRepository,
                 )
             }
         }
