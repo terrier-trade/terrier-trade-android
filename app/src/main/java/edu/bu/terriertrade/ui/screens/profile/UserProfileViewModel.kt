@@ -14,8 +14,8 @@ import edu.bu.terriertrade.data.repository.ListingRepository
 import edu.bu.terriertrade.data.repository.ReviewRepository
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
+import edu.bu.terriertrade.data.repository.observeUsers
 import edu.bu.terriertrade.di.appContainer
-import edu.bu.terriertrade.ui.model.observeUsers
 import edu.bu.terriertrade.ui.model.toListingUi
 import edu.bu.terriertrade.ui.model.toProfileHeaderUi
 import edu.bu.terriertrade.ui.model.toReviewUi

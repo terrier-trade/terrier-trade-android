@@ -1,7 +1,6 @@
-package edu.bu.terriertrade.ui.model
+package edu.bu.terriertrade.data.repository
 
 import edu.bu.terriertrade.data.model.User
-import edu.bu.terriertrade.data.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf

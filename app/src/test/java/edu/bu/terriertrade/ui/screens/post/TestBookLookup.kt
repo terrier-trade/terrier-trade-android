@@ -1,7 +1,7 @@
 package edu.bu.terriertrade.ui.screens.post
 
-import edu.bu.terriertrade.data.books.BookInfo
-import edu.bu.terriertrade.data.books.BookLookup
+import edu.bu.terriertrade.data.model.BookInfo
+import edu.bu.terriertrade.data.repository.BookLookup
 
 /** A BookLookup for tests: returns whatever result you set and remembers the ISBN it was asked for. */
 class TestBookLookup(

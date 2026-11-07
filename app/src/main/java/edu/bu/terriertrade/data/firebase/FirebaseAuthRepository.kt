@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import edu.bu.terriertrade.data.repository.AuthRepository
+import edu.bu.terriertrade.data.repository.DataError
 import edu.bu.terriertrade.util.EmailCheck
 import edu.bu.terriertrade.util.EmailValidator
 import kotlinx.coroutines.CancellationException
@@ -21,9 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
-
-/** A failure with a message that's safe to show on screen as it is. */
-class AuthError(message: String) : Exception(message)
 
 /**
  * The real AuthRepository, backed by Firebase Auth.
@@ -58,16 +56,16 @@ class FirebaseAuthRepository(
 
     override suspend fun signUp(name: String, email: String, password: String): Result<Unit> = runAuth {
         // The screen checks this too; this stops any other caller from skipping it.
-        if (EmailValidator.check(email) != EmailCheck.Valid) throw AuthError("Use your @bu.edu email")
+        if (EmailValidator.check(email) != EmailCheck.Valid) throw DataError("Use your @bu.edu email")
 
         val user = auth.createUserWithEmailAndPassword(email.trim(), password).await().user
-            ?: throw AuthError(GENERIC_ERROR)
+            ?: throw DataError(GENERIC_ERROR)
         val profile = UserProfileChangeRequest.Builder().setDisplayName(name.trim()).build()
         user.updateProfile(profile).await()
     }
 
     override suspend fun sendVerificationEmail(): Result<Unit> = runAuth {
-        val user = auth.currentUser ?: throw AuthError("Sign in again to get a new email.")
+        val user = auth.currentUser ?: throw DataError("Sign in again to get a new email.")
         user.sendEmailVerification().await()
     }
 
@@ -114,7 +112,7 @@ class FirebaseAuthRepository(
         }
     }
 
-    /** Runs a Firebase call and turns any failure into an AuthError with a friendly message. */
+    /** Runs a Firebase call and turns any failure into a DataError with a friendly message. */
     private suspend fun runAuth(block: suspend () -> Unit): Result<Unit> =
         try {
             block()
@@ -122,19 +120,19 @@ class FirebaseAuthRepository(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Result.failure(e.toAuthError())
+            Result.failure(e.toDataError())
         }
 
-    private fun Exception.toAuthError(): AuthError = when (this) {
-        is AuthError -> this
-        is FirebaseAuthUserCollisionException -> AuthError("There's already an account with this email. Sign in instead.")
+    private fun Exception.toDataError(): DataError = when (this) {
+        is DataError -> this
+        is FirebaseAuthUserCollisionException -> DataError("There's already an account with this email. Sign in instead.")
         // Weak password is a kind of invalid credentials, so it has to come first.
-        is FirebaseAuthWeakPasswordException -> AuthError("Pick a stronger password.")
+        is FirebaseAuthWeakPasswordException -> DataError("Pick a stronger password.")
         is FirebaseAuthInvalidUserException,
-        is FirebaseAuthInvalidCredentialsException -> AuthError("Wrong email or password.")
-        is FirebaseTooManyRequestsException -> AuthError("Too many tries. Wait a few minutes and try again.")
-        is FirebaseNetworkException -> AuthError("No internet connection. Check it and try again.")
-        else -> AuthError(GENERIC_ERROR)
+        is FirebaseAuthInvalidCredentialsException -> DataError("Wrong email or password.")
+        is FirebaseTooManyRequestsException -> DataError("Too many tries. Wait a few minutes and try again.")
+        is FirebaseNetworkException -> DataError("No internet connection. Check it and try again.")
+        else -> DataError(GENERIC_ERROR)
     }
 
     private companion object {

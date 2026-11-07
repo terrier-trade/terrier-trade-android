@@ -1,9 +1,8 @@
 package edu.bu.terriertrade.ui.screens.chat
 
+import edu.bu.terriertrade.data.deal.dealTotal
 import edu.bu.terriertrade.data.model.Chat
-import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
-import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.Message
 import edu.bu.terriertrade.data.model.MessageType
 import edu.bu.terriertrade.data.model.User
@@ -40,20 +39,6 @@ data class ChatContent(
     val messages: List<MessageUi>,
     val dealBar: DealBarUi?,
 )
-
-/**
- * Money in the deal from my side. Positive means I pay, negative means they pay me.
- * I receive an item when someone else owns it, except on Looking for posts, where it flips.
- */
-fun dealTotal(items: List<DealItem>, listings: Map<String, Listing>, myId: String): Int {
-    var total = 0
-    for (item in items) {
-        val listing = listings[item.listingId] ?: continue
-        val iReceive = (listing.ownerId != myId) != (listing.type == ListingType.WANTED)
-        total += if (iReceive) item.agreedPrice else -item.agreedPrice
-    }
-    return total
-}
 
 fun totalLabel(total: Int, partnerFirstName: String): String = when {
     total > 0 -> "You pay \$$total"

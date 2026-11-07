@@ -7,8 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import edu.bu.terriertrade.data.books.BookLookup
-import edu.bu.terriertrade.data.books.OpenLibraryBookLookup
 import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Condition
 import edu.bu.terriertrade.data.model.Listing
@@ -16,6 +14,7 @@ import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.MeetSpots
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.ServiceMode
+import edu.bu.terriertrade.data.repository.BookLookup
 import edu.bu.terriertrade.data.repository.ListingRepository
 import edu.bu.terriertrade.di.appContainer
 import edu.bu.terriertrade.util.Isbn
@@ -321,8 +320,7 @@ class NewListingViewModel(
         val inPersonMeetSpots: List<String> = MeetSpots.all.filterNot { it == "Online" }
 
         val Factory = viewModelFactory {
-            // TODO(di): BookLookup can move into AppContainer later; it's created here so di/ stays untouched.
-            initializer { NewListingViewModel(appContainer.listingRepository, OpenLibraryBookLookup()) }
+            initializer { NewListingViewModel(appContainer.listingRepository, appContainer.bookLookup) }
         }
     }
 }

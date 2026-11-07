@@ -12,6 +12,7 @@ import edu.bu.terriertrade.data.deal.RequestPlan
 import edu.bu.terriertrade.data.deal.RequestResult
 import edu.bu.terriertrade.data.deal.RequestRules
 import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.repository.DataError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

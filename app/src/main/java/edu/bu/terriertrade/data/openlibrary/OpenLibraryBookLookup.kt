@@ -1,5 +1,8 @@
-package edu.bu.terriertrade.data.books
+package edu.bu.terriertrade.data.openlibrary
 
+import edu.bu.terriertrade.data.model.BookInfo
+import edu.bu.terriertrade.data.repository.BookLookup
+import edu.bu.terriertrade.data.repository.DataError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,13 +26,18 @@ class OpenLibraryBookLookup(
         try {
             val body = api.books(bibKeys = "ISBN:$isbn").string()
             val book = withContext(Dispatchers.Default) { parse(isbn, body) }
-            if (book != null) Result.success(book) else Result.failure(BookNotFound(isbn))
+            if (book != null) {
+                Result.success(book)
+            } else {
+                Result.failure(DataError("We couldn't find ISBN $isbn. Fill in the details yourself."))
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             android.util.Log.w("OpenLibrary", "Lookup failed for $isbn", e)
-            Result.failure(Exception("Couldn't reach Open Library. Check your connection and try again."))
+            Result.failure(DataError("Couldn't reach Open Library. Check your connection and try again."))
         }
+
     private fun parse(isbn: String, json: String): BookInfo? {
         val book = JSONObject(json).optJSONObject("ISBN:$isbn") ?: return null
         val title = listOf(book.optString("title"), book.optString("subtitle"))

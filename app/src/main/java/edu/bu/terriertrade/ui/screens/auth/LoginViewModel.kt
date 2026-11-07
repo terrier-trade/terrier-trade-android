@@ -7,9 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import edu.bu.terriertrade.data.firebase.FirebasePasswordReset
-import edu.bu.terriertrade.data.firebase.PasswordReset
 import edu.bu.terriertrade.data.repository.AuthRepository
+import edu.bu.terriertrade.data.repository.PasswordReset
 import edu.bu.terriertrade.di.appContainer
 import edu.bu.terriertrade.util.EmailCheck
 import edu.bu.terriertrade.util.EmailValidator
@@ -96,7 +95,7 @@ class LoginViewModel(
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { LoginViewModel(appContainer.authRepository, FirebasePasswordReset()) }
+            initializer { LoginViewModel(appContainer.authRepository, appContainer.passwordReset) }
         }
     }
 }

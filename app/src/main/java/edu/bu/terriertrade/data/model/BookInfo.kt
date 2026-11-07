@@ -1,4 +1,4 @@
-package edu.bu.terriertrade.data.books
+package edu.bu.terriertrade.data.model
 
 /** What we know about a book from its ISBN. Used to fill in a textbook listing. */
 data class BookInfo(

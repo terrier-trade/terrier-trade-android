@@ -1,10 +1,17 @@
 package edu.bu.terriertrade.data.firebase
 
+import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Chat
+import edu.bu.terriertrade.data.model.Condition
+import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.ListingStatus
+import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.Message
 import edu.bu.terriertrade.data.model.MessageType
+import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.Review
 import edu.bu.terriertrade.data.model.ReviewTag
+import edu.bu.terriertrade.data.model.ServiceMode
 import edu.bu.terriertrade.data.model.User
 
 /*
@@ -13,6 +20,55 @@ import edu.bu.terriertrade.data.model.User
  * Reading never crashes: a missing or odd field falls back to a safe default, and a document
  * without its required fields is skipped (null).
  */
+
+// Listings --------------------------------------------------------------------------------------
+
+/** Listing → Firestore fields. Only web photo URLs are kept, since phone-only photo links mean nothing to other phones. */
+internal fun Listing.toMap(): Map<String, Any?> = mapOf(
+    "ownerId" to ownerId,
+    "type" to type.name,
+    "title" to title,
+    "price" to price,
+    "description" to description,
+    "priceUnit" to priceUnit.name,
+    "category" to category.name,
+    "condition" to condition?.name,
+    "serviceMode" to serviceMode?.name,
+    "meetSpot" to meetSpot,
+    "photoUrls" to photoUrls.filter { it.startsWith("http") },
+    "isbn" to isbn,
+    "eventDateMillis" to eventDateMillis,
+    "quantity" to quantity,
+    "status" to status.name,
+    "createdAt" to createdAt,
+)
+
+/** Firestore fields → Listing, or null when the owner, type or title is missing. */
+internal fun listingFromMap(id: String, data: Map<String, Any?>?): Listing? {
+    if (data == null) return null
+    val ownerId = data.string("ownerId").ifBlank { return null }
+    val type = enumOrNull<ListingType>(data["type"] as? String) ?: return null
+    val title = data.string("title").ifBlank { return null }
+    return Listing(
+        id = id,
+        ownerId = ownerId,
+        type = type,
+        title = title,
+        price = data.long("price")?.toInt() ?: 0,
+        description = data.string("description"),
+        priceUnit = enumOrNull<PriceUnit>(data["priceUnit"] as? String) ?: PriceUnit.NONE,
+        category = enumOrNull<Category>(data["category"] as? String) ?: Category.OTHER,
+        condition = enumOrNull<Condition>(data["condition"] as? String),
+        serviceMode = enumOrNull<ServiceMode>(data["serviceMode"] as? String),
+        meetSpot = data.string("meetSpot"),
+        photoUrls = (data["photoUrls"] as? List<*>).orEmpty().filterIsInstance<String>(),
+        isbn = data["isbn"] as? String,
+        eventDateMillis = data.long("eventDateMillis"),
+        quantity = data.long("quantity")?.toInt(),
+        status = enumOrNull<ListingStatus>(data["status"] as? String) ?: ListingStatus.ACTIVE,
+        createdAt = data.long("createdAt") ?: 0L,
+    )
+}
 
 // Users -----------------------------------------------------------------------------------------
 
@@ -133,6 +189,3 @@ internal fun messageFromMap(id: String, chatId: String, data: Map<String, Any?>?
 private fun Map<String, Any?>.string(key: String): String = (this[key] as? String).orEmpty()
 
 private fun Map<String, Any?>.long(key: String): Long? = (this[key] as? Number)?.toLong()
-
-private inline fun <reified T : Enum<T>> enumOrNull(name: String?): T? =
-    name?.let { value -> enumValues<T>().firstOrNull { it.name == value } }

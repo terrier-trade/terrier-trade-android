@@ -1,6 +1,7 @@
 package edu.bu.terriertrade.ui.screens.auth
 
-import edu.bu.terriertrade.data.firebase.PasswordReset
+import edu.bu.terriertrade.data.repository.PasswordReset
+
 
 /** Records reset emails instead of sending them. Set [result] to make sending fail. */
 class TestPasswordReset : PasswordReset {
