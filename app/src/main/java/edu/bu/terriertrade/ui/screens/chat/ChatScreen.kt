@@ -46,9 +46,9 @@ import edu.bu.terriertrade.ui.components.profile.TTAvatar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
-/** One conversation. Gets its data from [ChatViewModel]. */
+/** One conversation, used by navigation. Owns [ChatViewModel]. */
 @Composable
-fun ChatScreen(
+fun ChatRoute(
     onBack: () -> Unit,
     onOpenProfile: (userId: String) -> Unit,
     onOpenDeal: () -> Unit,
@@ -58,7 +58,7 @@ fun ChatScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val draft by viewModel.draft.collectAsStateWithLifecycle()
 
-    ChatScreenContent(
+    ChatScreen(
         state = state,
         draft = draft,
         onDraftChange = viewModel::onDraftChange,
@@ -72,7 +72,7 @@ fun ChatScreen(
 
 /** Draws the chat from [state]. No ViewModel, so it can be previewed. */
 @Composable
-fun ChatScreenContent(
+fun ChatScreen(
     state: UiState<ChatContent>,
     draft: String,
     onDraftChange: (String) -> Unit,
@@ -259,7 +259,7 @@ private fun ChatScreenPreview() {
     )
     TerrierTradeTheme {
         Surface {
-            ChatScreenContent(
+            ChatScreen(
                 state = UiState.Success(content),
                 draft = "",
                 onDraftChange = {},

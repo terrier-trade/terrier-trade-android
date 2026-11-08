@@ -27,9 +27,9 @@ import edu.bu.terriertrade.ui.components.inputs.TTSearchBar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
-/** Chats tab. Gets its data from [ChatsViewModel] and opens a chat through [onOpenChat]. */
+/** Chats tab, used by navigation. Owns [ChatsViewModel] and opens a chat through [onOpenChat]. */
 @Composable
-fun ChatsScreen(
+fun ChatsRoute(
     onOpenChat: (chatId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ChatsViewModel = viewModel(factory = ChatsViewModel.Factory),
@@ -37,7 +37,7 @@ fun ChatsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
 
-    ChatsScreenContent(
+    ChatsScreen(
         state = state,
         query = query,
         onQueryChange = viewModel::onQueryChange,
@@ -48,7 +48,7 @@ fun ChatsScreen(
 
 /** Draws the chats list from [state]. No ViewModel, so it can be previewed. */
 @Composable
-fun ChatsScreenContent(
+fun ChatsScreen(
     state: UiState<ChatsContent>,
     query: String,
     onQueryChange: (String) -> Unit,
@@ -147,7 +147,7 @@ private fun ChatsScreenPreview() {
     )
     TerrierTradeTheme {
         Surface {
-            ChatsScreenContent(
+            ChatsScreen(
                 state = UiState.Success(content),
                 query = "",
                 onQueryChange = {},
