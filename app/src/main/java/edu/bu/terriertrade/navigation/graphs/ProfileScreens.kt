@@ -6,7 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.bu.terriertrade.navigation.Routes
-import edu.bu.terriertrade.ui.screens.PlaceholderScreen
+import edu.bu.terriertrade.ui.screens.placeholder.PlaceholderScreen
 import edu.bu.terriertrade.ui.screens.profile.MyProfileRoute
 import edu.bu.terriertrade.ui.screens.profile.UserProfileRoute
 

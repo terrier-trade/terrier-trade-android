@@ -1,5 +1,10 @@
 package edu.bu.terriertrade.data.firebase
 
+import edu.bu.terriertrade.data.model.Category
+import edu.bu.terriertrade.data.model.Condition
+import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.ListingStatus
+import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.Message
 import edu.bu.terriertrade.data.model.MessageType
 import edu.bu.terriertrade.data.model.Review
@@ -11,7 +16,49 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Model to Firestore fields and back. Firestore returns numbers as Long and old documents can have odd
+ * values, so reading must never crash.
+ */
 class FirestoreMappersTest {
+
+    @Test
+    fun listing_roundTrips_andDropsPhoneOnlyPhotos() {
+        val lamp = Listing(
+            id = "l1", ownerId = "alex", type = ListingType.ITEM, title = "Desk lamp", price = 12,
+            category = Category.FURNITURE, condition = Condition.GOOD, meetSpot = "GSU",
+            photoUrls = listOf("content://media/1", "https://covers.openlibrary.org/b/id/1-M.jpg"),
+            createdAt = 1_000L,
+        )
+        val map = lamp.toMap()
+
+        // A content:// link only works on the phone that picked it, so it isn't saved.
+        assertEquals(listOf("https://covers.openlibrary.org/b/id/1-M.jpg"), map["photoUrls"])
+        assertEquals("ITEM", map["type"])
+
+        // Firestore hands numbers back as Long, which is what the map has after a real read.
+        val back = listingFromMap("l1", map + ("price" to 12L))!!
+        assertEquals(lamp.copy(photoUrls = listOf("https://covers.openlibrary.org/b/id/1-M.jpg")), back)
+    }
+
+    @Test
+    fun listing_withoutRequiredFields_isSkipped() {
+        assertNull(listingFromMap("x", mapOf("type" to "ITEM", "title" to "No owner")))
+        assertNull(listingFromMap("x", mapOf("ownerId" to "alex", "type" to "BOAT", "title" to "Unknown type")))
+        assertNull(listingFromMap("x", null))
+    }
+
+    @Test
+    fun listing_withOddFields_getsSafeDefaults() {
+        val listing = listingFromMap(
+            "x",
+            mapOf("ownerId" to "alex", "type" to "SERVICE", "title" to "Tutoring", "category" to "SPACESHIPS"),
+        )!!
+
+        assertEquals(Category.OTHER, listing.category)
+        assertEquals(ListingStatus.ACTIVE, listing.status)
+        assertEquals(0, listing.price)
+    }
 
     @Test
     fun profile_roundTrips_withoutEmailOrRatings() {

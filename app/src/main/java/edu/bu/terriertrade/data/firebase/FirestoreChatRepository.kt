@@ -12,6 +12,7 @@ import edu.bu.terriertrade.data.deal.RequestPlan
 import edu.bu.terriertrade.data.deal.RequestResult
 import edu.bu.terriertrade.data.deal.RequestRules
 import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.repository.DataError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -23,7 +24,7 @@ import kotlinx.coroutines.tasks.await
 /**
  * The real ChatRepository: chats live at chats/{chatId}, messages at chats/{chatId}/messages.
  * Only the two students in a chat can read it (firestore.rules).
- * TODO(deals): deals inside a chat are saved with the chat screens, later.
+ * A request saves its deal on the chat document and its REQUEST message in one transaction.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class FirestoreChatRepository(

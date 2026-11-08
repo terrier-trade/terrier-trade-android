@@ -53,7 +53,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
 
     // Architecture: ViewModel, lifecycle-aware state, navigation, coroutines
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -68,7 +67,6 @@ dependencies {
 
     // Network
     implementation(libs.retrofit)
-    implementation(libs.okhttp.logging)
 
     // Local storage (Room is added with the first local cache)
     implementation(libs.androidx.datastore.preferences)

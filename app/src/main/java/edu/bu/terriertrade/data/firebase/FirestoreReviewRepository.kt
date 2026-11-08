@@ -3,6 +3,7 @@ package edu.bu.terriertrade.data.firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import edu.bu.terriertrade.data.model.Review
+import edu.bu.terriertrade.data.repository.DataError
 import edu.bu.terriertrade.data.repository.ReviewRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

@@ -42,13 +42,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.ui.common.UiState
 import edu.bu.terriertrade.ui.common.UiStateContent
-import edu.bu.terriertrade.ui.screens.chats.InitialsAvatar
+import edu.bu.terriertrade.ui.components.profile.TTAvatar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
-/** One conversation. Gets its data from [ChatViewModel]. */
+/** One conversation, used by navigation. Owns [ChatViewModel]. */
 @Composable
-fun ChatScreen(
+fun ChatRoute(
     onBack: () -> Unit,
     onOpenProfile: (userId: String) -> Unit,
     onOpenDeal: () -> Unit,
@@ -58,7 +58,7 @@ fun ChatScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val draft by viewModel.draft.collectAsStateWithLifecycle()
 
-    ChatScreenContent(
+    ChatScreen(
         state = state,
         draft = draft,
         onDraftChange = viewModel::onDraftChange,
@@ -72,7 +72,7 @@ fun ChatScreen(
 
 /** Draws the chat from [state]. No ViewModel, so it can be previewed. */
 @Composable
-fun ChatScreenContent(
+fun ChatScreen(
     state: UiState<ChatContent>,
     draft: String,
     onDraftChange: (String) -> Unit,
@@ -148,9 +148,11 @@ private fun ChatTopBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.md),
                 ) {
-                    InitialsAvatar(
+                    TTAvatar(
                         initials = content.partnerInitials,
                         size = 40.dp,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.border(2.dp, onRed, CircleShape),
                     )
                     Column {
@@ -257,7 +259,7 @@ private fun ChatScreenPreview() {
     )
     TerrierTradeTheme {
         Surface {
-            ChatScreenContent(
+            ChatScreen(
                 state = UiState.Success(content),
                 draft = "",
                 onDraftChange = {},

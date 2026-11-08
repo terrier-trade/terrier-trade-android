@@ -4,18 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,12 +23,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.ui.common.UiState
 import edu.bu.terriertrade.ui.common.UiStateContent
+import edu.bu.terriertrade.ui.components.inputs.TTSearchBar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
-/** Chats tab. Gets its data from [ChatsViewModel] and opens a chat through [onOpenChat]. */
+/** Chats tab, used by navigation. Owns [ChatsViewModel] and opens a chat through [onOpenChat]. */
 @Composable
-fun ChatsScreen(
+fun ChatsRoute(
     onOpenChat: (chatId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ChatsViewModel = viewModel(factory = ChatsViewModel.Factory),
@@ -44,7 +37,7 @@ fun ChatsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
 
-    ChatsScreenContent(
+    ChatsScreen(
         state = state,
         query = query,
         onQueryChange = viewModel::onQueryChange,
@@ -55,7 +48,7 @@ fun ChatsScreen(
 
 /** Draws the chats list from [state]. No ViewModel, so it can be previewed. */
 @Composable
-fun ChatsScreenContent(
+fun ChatsScreen(
     state: UiState<ChatsContent>,
     query: String,
     onQueryChange: (String) -> Unit,
@@ -78,7 +71,12 @@ fun ChatsScreenContent(
                 ChatsTitle(totalCount = content.totalCount, needsReplyCount = content.needsReplyCount)
             }
             item(key = "search") {
-                SearchPill(query = query, onQueryChange = onQueryChange)
+                TTSearchBar(
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    placeholder = "Search people",
+                    outlined = true,
+                )
             }
             if (content.sections.isEmpty()) {
                 item(key = "no-results") {
@@ -122,28 +120,6 @@ private fun ChatsTitle(totalCount: Int, needsReplyCount: Int) {
 }
 
 @Composable
-private fun SearchPill(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search people") },
-        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-        trailingIcon = if (query.isNotEmpty()) {
-            {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Outlined.Close, contentDescription = "Clear search")
-                }
-            }
-        } else {
-            null
-        },
-        singleLine = true,
-        shape = CircleShape,
-    )
-}
-
-@Composable
 private fun SectionTitle(group: ChatGroup) {
     Text(
         text = group.title.uppercase(),
@@ -171,7 +147,7 @@ private fun ChatsScreenPreview() {
     )
     TerrierTradeTheme {
         Surface {
-            ChatsScreenContent(
+            ChatsScreen(
                 state = UiState.Success(content),
                 query = "",
                 onQueryChange = {},

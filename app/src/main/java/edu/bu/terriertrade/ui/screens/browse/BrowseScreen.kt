@@ -23,26 +23,26 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.bu.terriertrade.ui.components.TTAppHeader
-import edu.bu.terriertrade.ui.components.TTCategoryIcon
-import edu.bu.terriertrade.ui.components.TTChipRow
-import edu.bu.terriertrade.ui.components.TTEmptyState
-import edu.bu.terriertrade.ui.components.TTErrorState
-import edu.bu.terriertrade.ui.components.TTListingRow
-import edu.bu.terriertrade.ui.components.TTLoadingState
-import edu.bu.terriertrade.ui.components.TTNoteColor
-import edu.bu.terriertrade.ui.components.TTSearchBar
-import edu.bu.terriertrade.ui.components.TTSectionHeader
-import edu.bu.terriertrade.ui.components.TTWantedNote
-import edu.bu.terriertrade.ui.model.ListingCategory
+import edu.bu.terriertrade.data.model.Category
+import edu.bu.terriertrade.ui.components.feedback.TTEmptyState
+import edu.bu.terriertrade.ui.components.feedback.TTErrorState
+import edu.bu.terriertrade.ui.components.feedback.TTLoadingState
+import edu.bu.terriertrade.ui.components.inputs.TTSearchBar
+import edu.bu.terriertrade.ui.components.layout.TTAppHeader
+import edu.bu.terriertrade.ui.components.layout.TTAppHeaderCornerOverlap
+import edu.bu.terriertrade.ui.components.layout.TTSectionHeader
+import edu.bu.terriertrade.ui.components.layout.joinAppHeader
+import edu.bu.terriertrade.ui.components.listing.TTListingRow
+import edu.bu.terriertrade.ui.components.listing.TTNoteColor
+import edu.bu.terriertrade.ui.components.listing.TTWantedNote
+import edu.bu.terriertrade.ui.components.selection.TTCategoryIcon
+import edu.bu.terriertrade.ui.components.selection.TTChipRow
 import edu.bu.terriertrade.ui.model.ListingUi
-import edu.bu.terriertrade.ui.model.SampleData
 import edu.bu.terriertrade.ui.model.WantedPostUi
 import edu.bu.terriertrade.ui.model.icon
+import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
-import edu.bu.terriertrade.ui.components.TTAppHeaderCornerOverlap
-import edu.bu.terriertrade.ui.components.joinAppHeader
 
 /**
  * Stateful entry point for navigation.
@@ -113,7 +113,7 @@ fun BrowseRoute(
 fun BrowseScreen(
     uiState: BrowseUiState,
     onQueryChange: (String) -> Unit,
-    onCategorySelect: (ListingCategory) -> Unit,
+    onCategorySelect: (Category) -> Unit,
     onFilterSelect: (BrowseFilter) -> Unit,
     onToggleFavorite: (String) -> Unit,
     onRequest: (String) -> Unit,
@@ -161,7 +161,7 @@ fun BrowseScreen(
 @Composable
 private fun BrowseFeed(
     uiState: BrowseUiState,
-    onCategorySelect: (ListingCategory) -> Unit,
+    onCategorySelect: (Category) -> Unit,
     onFilterSelect: (BrowseFilter) -> Unit,
     onToggleFavorite: (String) -> Unit,
     onRequest: (String) -> Unit,
@@ -182,7 +182,7 @@ private fun BrowseFeed(
                 contentPadding = PaddingValues(horizontal = Spacing.md),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
             ) {
-                items(ListingCategory.entries.toList()) { category ->
+                items(Category.entries.toList()) { category ->
                     TTCategoryIcon(
                         icon = category.icon,
                         label = category.label,
@@ -335,8 +335,8 @@ private fun BrowseScreenPreview() {
     TerrierTradeTheme {
         BrowseScreen(
             uiState = BrowseUiState(
-                listings = SampleData.listings,
-                wanted = SampleData.wanted,
+                listings = PreviewData.listings,
+                wanted = PreviewData.wanted,
                 favoriteIds = setOf("cs330-tutoring"),
             ),
             onQueryChange = {}, onCategorySelect = {}, onFilterSelect = {}, onToggleFavorite = {},
@@ -350,7 +350,7 @@ private fun BrowseScreenPreview() {
 private fun BrowseScreenInTabPreview() {
     TerrierTradeTheme {
         BrowseScreen(
-            uiState = BrowseUiState(listings = SampleData.listings, wanted = SampleData.wanted),
+            uiState = BrowseUiState(listings = PreviewData.listings, wanted = PreviewData.wanted),
             onQueryChange = {}, onCategorySelect = {}, onFilterSelect = {}, onToggleFavorite = {},
             onRequest = {}, onListingClick = {}, onHelpClick = {}, onNotificationsClick = {},
             showAppHeader = false,
@@ -363,7 +363,7 @@ private fun BrowseScreenInTabPreview() {
 private fun BrowseScreenLookingForPreview() {
     TerrierTradeTheme {
         BrowseScreen(
-            uiState = BrowseUiState(filter = BrowseFilter.LOOKING_FOR, wanted = SampleData.wanted),
+            uiState = BrowseUiState(filter = BrowseFilter.LOOKING_FOR, wanted = PreviewData.wanted),
             onQueryChange = {}, onCategorySelect = {}, onFilterSelect = {}, onToggleFavorite = {},
             onRequest = {}, onListingClick = {}, onHelpClick = {}, onNotificationsClick = {},
         )

@@ -3,6 +3,10 @@ package edu.bu.terriertrade.util
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * Sign-up only accepts @bu.edu addresses. These cover real BU emails, typing slips like spaces and
+ * capitals, and look-alike domains that must be rejected.
+ */
 class EmailValidatorTest {
 
     @Test

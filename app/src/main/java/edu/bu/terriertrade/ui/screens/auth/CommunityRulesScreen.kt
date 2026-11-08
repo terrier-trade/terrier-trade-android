@@ -14,7 +14,6 @@ import androidx.compose.material.icons.outlined.Handshake
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.ReportProblem
 import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.MaterialTheme
@@ -24,10 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import edu.bu.terriertrade.ui.components.TTBottomActions
-import edu.bu.terriertrade.ui.components.TTPrimaryButton
-import edu.bu.terriertrade.ui.components.TTRuleCard
-import edu.bu.terriertrade.ui.components.TTScreenHeader
+import edu.bu.terriertrade.ui.components.buttons.TTPrimaryButton
+import edu.bu.terriertrade.ui.components.layout.TTBottomActions
+import edu.bu.terriertrade.ui.components.layout.TTRuleCard
+import edu.bu.terriertrade.ui.components.layout.TTScreenHeader
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -51,11 +50,6 @@ object CommunityRules {
             Icons.Outlined.Place, "Meet on campus, in public",
             "Meet in busy public spots like GSU or Mugar Library, in daylight when you can. " +
                 "Don't share your room number or go somewhere private with someone you just met.",
-        ),
-        CommunityRule(
-            Icons.Outlined.SwapHoriz, "Skill swaps",
-            "You can trade teaching for teaching with no money. Agree in chat on what each person " +
-                "teaches and for how long before you meet.",
         ),
         CommunityRule(
             Icons.Outlined.ConfirmationNumber, "How ticket handoffs work",

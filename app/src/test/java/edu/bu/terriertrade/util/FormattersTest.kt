@@ -7,6 +7,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.ZoneOffset
 
+/**
+ * The price and "time ago" labels on every card: free items, hourly rates, "Up to" budgets on wanted
+ * posts, and the switch to a date after a week.
+ */
 class FormattersTest {
 
     @Test

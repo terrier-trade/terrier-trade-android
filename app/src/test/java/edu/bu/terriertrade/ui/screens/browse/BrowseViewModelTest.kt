@@ -9,8 +9,10 @@ import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.User
-import edu.bu.terriertrade.ui.model.ListingCategory
-import edu.bu.terriertrade.util.MainDispatcherRule
+import edu.bu.terriertrade.testing.InMemoryListingRepository
+import edu.bu.terriertrade.testing.InMemorySavedRepository
+import edu.bu.terriertrade.testing.InMemoryUserRepository
+import edu.bu.terriertrade.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.update
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,6 +22,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Browse: loading and sorting listings, the type chips, categories and search, hearts, and Request
+ * opening a chat.
+ */
 class BrowseViewModelTest {
 
     @get:Rule
@@ -118,9 +124,9 @@ class BrowseViewModelTest {
     @Test
     fun category_filtersAndTappingAgainClears() {
         val vm = viewModel()
-        vm.onCategorySelect(ListingCategory.BOOKS)
+        vm.onCategorySelect(Category.BOOKS)
         assertEquals(listOf("Calculus textbook"), vm.titles())
-        vm.onCategorySelect(ListingCategory.BOOKS)
+        vm.onCategorySelect(Category.BOOKS)
         assertNull(vm.uiState.category)
         assertEquals(4, vm.uiState.listings.size)
     }
@@ -128,7 +134,7 @@ class BrowseViewModelTest {
     @Test
     fun allChip_clearsCategory() {
         val vm = viewModel().apply {
-            onCategorySelect(ListingCategory.BOOKS)
+            onCategorySelect(Category.BOOKS)
             onFilterSelect(BrowseFilter.ALL)
         }
         assertNull(vm.uiState.category)

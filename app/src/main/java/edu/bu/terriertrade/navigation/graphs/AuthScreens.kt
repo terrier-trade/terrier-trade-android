@@ -4,10 +4,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import edu.bu.terriertrade.navigation.Routes
+import edu.bu.terriertrade.navigation.openHomeAfterSignIn
 import edu.bu.terriertrade.ui.screens.auth.AuthRoute
 import edu.bu.terriertrade.ui.screens.auth.AuthTab
 import edu.bu.terriertrade.ui.screens.auth.VerifyEmailRoute
-import edu.bu.terriertrade.ui.screens.auth.openHomeAfterSignIn
 
 /**
  * Sign in / Create account, then email verification. Verified students land on Browse.

@@ -8,11 +8,12 @@ import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.Review
 import edu.bu.terriertrade.data.model.ReviewTag
 import edu.bu.terriertrade.data.model.User
-import edu.bu.terriertrade.ui.screens.auth.TestAuthRepository
-import edu.bu.terriertrade.ui.screens.browse.InMemoryListingRepository
-import edu.bu.terriertrade.ui.screens.browse.InMemorySavedRepository
-import edu.bu.terriertrade.ui.screens.browse.InMemoryUserRepository
-import edu.bu.terriertrade.util.MainDispatcherRule
+import edu.bu.terriertrade.testing.InMemoryListingRepository
+import edu.bu.terriertrade.testing.InMemoryReviewRepository
+import edu.bu.terriertrade.testing.InMemorySavedRepository
+import edu.bu.terriertrade.testing.InMemoryUserRepository
+import edu.bu.terriertrade.testing.MainDispatcherRule
+import edu.bu.terriertrade.testing.TestAuthRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -20,6 +21,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Your own profile: the header, the Listings, Saved and Reviews tabs, and the actions on your listings
+ * (mark sold, remove after a confirm).
+ */
 class MyProfileViewModelTest {
 
     @get:Rule

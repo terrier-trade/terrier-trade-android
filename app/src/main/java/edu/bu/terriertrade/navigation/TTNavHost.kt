@@ -17,7 +17,7 @@ import edu.bu.terriertrade.navigation.graphs.profileScreens
 fun TTNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    startDestination: String = Routes.FEED,
+    startDestination: String = Routes.BROWSE,
 ) {
     NavHost(
         navController = navController,

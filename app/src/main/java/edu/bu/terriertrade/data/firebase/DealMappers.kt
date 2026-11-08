@@ -63,14 +63,13 @@ private fun proposalFromMap(raw: Any?): DealProposal? {
     val data = raw.asMap() ?: return null
     val id = (data["id"] as? String) ?: return null
     val fromUserId = (data["fromUserId"] as? String) ?: return null
-    val statusName = data["status"] as? String
 
     return DealProposal(
         id = id,
         fromUserId = fromUserId,
         items = itemsFromList(data["items"]),
         baseVersion = (data["baseVersion"] as? Number)?.toInt() ?: 0,
-        status = ProposalStatus.entries.firstOrNull { it.name == statusName } ?: ProposalStatus.PENDING,
+        status = enumOrNull<ProposalStatus>(data["status"] as? String) ?: ProposalStatus.PENDING,
         createdAt = (data["createdAt"] as? Number)?.toLong() ?: 0L,
     )
 }

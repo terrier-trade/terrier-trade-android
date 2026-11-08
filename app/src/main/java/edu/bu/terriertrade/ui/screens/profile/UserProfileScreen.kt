@@ -20,19 +20,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.bu.terriertrade.ui.components.TTBackButton
-import edu.bu.terriertrade.ui.components.TTBottomActions
-import edu.bu.terriertrade.ui.components.TTEmptyState
-import edu.bu.terriertrade.ui.components.TTErrorText
-import edu.bu.terriertrade.ui.components.TTListingRow
-import edu.bu.terriertrade.ui.components.TTLoadingState
-import edu.bu.terriertrade.ui.components.TTPrimaryButton
-import edu.bu.terriertrade.ui.components.TTProfileHeaderCard
-import edu.bu.terriertrade.ui.components.TTReviewCard
-import edu.bu.terriertrade.ui.components.TTSectionHeader
+import edu.bu.terriertrade.ui.components.buttons.TTBackButton
+import edu.bu.terriertrade.ui.components.buttons.TTPrimaryButton
+import edu.bu.terriertrade.ui.components.feedback.TTEmptyState
+import edu.bu.terriertrade.ui.components.feedback.TTErrorText
+import edu.bu.terriertrade.ui.components.feedback.TTLoadingState
+import edu.bu.terriertrade.ui.components.layout.TTBottomActions
+import edu.bu.terriertrade.ui.components.layout.TTSectionHeader
+import edu.bu.terriertrade.ui.components.listing.TTListingRow
+import edu.bu.terriertrade.ui.components.profile.TTProfileHeaderCard
+import edu.bu.terriertrade.ui.components.profile.TTReviewCard
 import edu.bu.terriertrade.ui.model.ProfileHeaderUi
 import edu.bu.terriertrade.ui.model.ReviewUi
-import edu.bu.terriertrade.ui.model.SampleData
+import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -193,7 +193,7 @@ private fun UserProfileScreenPreview() {
                     ratingLabel = "4.9", tradeCount = 14, classOf = "'26", buDates = "Fall 2022 to May 2026",
                     bio = "Physics senior clearing out my desk before graduation. Usually free after 3pm.", meetSpot = "GSU",
                 ),
-                listings = SampleData.listings.take(2),
+                listings = PreviewData.listings.take(2),
                 reviews = listOf(
                     ReviewUi("r3", "Priya B.", "PB", 5, listOf("Friendly"), "Super quick and friendly.", "Oct 21"),
                 ),

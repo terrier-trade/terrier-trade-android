@@ -3,8 +3,8 @@ package edu.bu.terriertrade.ui.screens.chats
 import edu.bu.terriertrade.data.fake.FakeAuthRepository
 import edu.bu.terriertrade.data.fake.FakeChatRepository
 import edu.bu.terriertrade.data.fake.FakeUserRepository
+import edu.bu.terriertrade.testing.MainDispatcherRule
 import edu.bu.terriertrade.ui.common.UiState
-import edu.bu.terriertrade.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -15,6 +15,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * The chat list: sorting chats into Needs your reply, Active deals and Earlier, searching by name, and
+ * showing nothing when signed out.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatsViewModelTest {
 

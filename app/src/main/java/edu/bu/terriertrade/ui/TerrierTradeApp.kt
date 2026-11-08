@@ -13,14 +13,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import edu.bu.terriertrade.di.rememberAppContainer
 import edu.bu.terriertrade.navigation.Routes
+import edu.bu.terriertrade.navigation.SignedOutRedirect
 import edu.bu.terriertrade.navigation.TTBottomBar
 import edu.bu.terriertrade.navigation.TTNavHost
 import edu.bu.terriertrade.navigation.TopLevelDestination
 import edu.bu.terriertrade.navigation.navigateToTopLevel
-import edu.bu.terriertrade.ui.components.TTAppHeader
-import edu.bu.terriertrade.ui.components.TTOfflineBanner
-import edu.bu.terriertrade.ui.screens.auth.SignedOutRedirect
-import edu.bu.terriertrade.ui.screens.auth.rememberStartRoute
+import edu.bu.terriertrade.navigation.rememberStartRoute
+import edu.bu.terriertrade.ui.components.feedback.TTOfflineBanner
+import edu.bu.terriertrade.ui.components.layout.TTAppHeader
 
 /**
  * Root of the app. Bottom-bar tabs get the shared header and the bottom bar.

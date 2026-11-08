@@ -26,21 +26,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.bu.terriertrade.ui.components.TTBannerTone
-import edu.bu.terriertrade.ui.components.TTChipRow
-import edu.bu.terriertrade.ui.components.TTEmptyState
-import edu.bu.terriertrade.ui.components.TTErrorState
-import edu.bu.terriertrade.ui.components.TTInfoBanner
-import edu.bu.terriertrade.ui.components.TTListingRow
-import edu.bu.terriertrade.ui.components.TTLoadingState
-import edu.bu.terriertrade.ui.components.TTMyListingRow
-import edu.bu.terriertrade.ui.components.TTProfileHeaderCard
-import edu.bu.terriertrade.ui.components.TTReviewCard
-import edu.bu.terriertrade.ui.components.TTSecondaryButton
+import edu.bu.terriertrade.ui.components.buttons.TTSecondaryButton
+import edu.bu.terriertrade.ui.components.feedback.TTBannerTone
+import edu.bu.terriertrade.ui.components.feedback.TTEmptyState
+import edu.bu.terriertrade.ui.components.feedback.TTErrorState
+import edu.bu.terriertrade.ui.components.feedback.TTInfoBanner
+import edu.bu.terriertrade.ui.components.feedback.TTLoadingState
+import edu.bu.terriertrade.ui.components.listing.TTListingRow
+import edu.bu.terriertrade.ui.components.listing.TTMyListingRow
+import edu.bu.terriertrade.ui.components.profile.TTProfileHeaderCard
+import edu.bu.terriertrade.ui.components.profile.TTReviewCard
+import edu.bu.terriertrade.ui.components.selection.TTChipRow
 import edu.bu.terriertrade.ui.model.MyListingUi
 import edu.bu.terriertrade.ui.model.ProfileHeaderUi
 import edu.bu.terriertrade.ui.model.ReviewUi
-import edu.bu.terriertrade.ui.model.SampleData
+import edu.bu.terriertrade.ui.preview.PreviewData
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
@@ -261,7 +261,7 @@ private fun MyProfileListingsPreview() {
             uiState = MyProfileUiState(
                 isLoading = false,
                 header = previewHeader,
-                myListings = SampleData.listings.take(3).mapIndexed { i, l -> MyListingUi(l, isSold = i == 2) },
+                myListings = PreviewData.listings.take(3).mapIndexed { i, l -> MyListingUi(l, isSold = i == 2) },
             ),
             onTabSelect = {}, onListingClick = {}, onMarkSold = {}, onRemoveClick = {}, onToggleSaved = {},
         )

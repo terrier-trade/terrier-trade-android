@@ -7,13 +7,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.ui.screens.browse.BrowseRoute
-import edu.bu.terriertrade.ui.screens.listing.ListingDetailRoute
-import edu.bu.terriertrade.ui.screens.post.NewListingRoute
-import edu.bu.terriertrade.ui.screens.skills.SkillsScreen
+import edu.bu.terriertrade.ui.screens.listingdetail.ListingDetailRoute
+import edu.bu.terriertrade.ui.screens.newlisting.NewListingRoute
 
 /** Browse, posting and the listing detail screen. */
 fun NavGraphBuilder.listingScreens(navController: NavHostController) {
-    composable(Routes.FEED) {
+    composable(Routes.BROWSE) {
         BrowseRoute(
             onListingClick = { listingId -> navController.navigate(Routes.listingDetail(listingId)) },
             onOpenChat = { chatId -> navController.navigate(Routes.chat(chatId)) },
@@ -21,14 +20,11 @@ fun NavGraphBuilder.listingScreens(navController: NavHostController) {
             showAppHeader = false,
         )
     }
-    composable(Routes.POST) {
+    composable(Routes.NEW_LISTING) {
         NewListingRoute(
             // After posting, show the new listing
             onPosted = { listingId -> navController.navigate(Routes.listingDetail(listingId)) },
         )
-    }
-    composable(Routes.SKILLS) {
-        SkillsScreen()
     }
     composable(
         route = Routes.LISTING_DETAIL,

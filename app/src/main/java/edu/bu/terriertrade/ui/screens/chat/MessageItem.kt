@@ -22,7 +22,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import edu.bu.terriertrade.ui.components.TTPreviewColumn
+import edu.bu.terriertrade.ui.preview.TTPreviewColumn
 import edu.bu.terriertrade.ui.theme.Spacing
 
 /** Draws one message in the chat based on its kind. */

@@ -2,9 +2,9 @@ package edu.bu.terriertrade.ui.common
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import edu.bu.terriertrade.ui.components.TTEmptyState
-import edu.bu.terriertrade.ui.components.TTErrorState
-import edu.bu.terriertrade.ui.components.TTLoadingState
+import edu.bu.terriertrade.ui.components.feedback.TTEmptyState
+import edu.bu.terriertrade.ui.components.feedback.TTErrorState
+import edu.bu.terriertrade.ui.components.feedback.TTLoadingState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
