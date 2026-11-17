@@ -4,6 +4,7 @@ import edu.bu.terriertrade.data.deal.DealPlan
 import edu.bu.terriertrade.data.deal.DealRules
 import edu.bu.terriertrade.data.deal.dealTotal
 import edu.bu.terriertrade.data.deal.receivesItem
+import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Deal
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
@@ -35,6 +36,13 @@ data class DealRowUi(
     val change: RowChange = RowChange.SAME,
     /** False when the listing was sold or removed after it went into the deal. */
     val isAvailable: Boolean = true,
+    /** True for my own listings: the edit view lists them under Your listings. */
+    val isMine: Boolean = false,
+    /** True when I end up with this item. The sheet groups rows into You get and You give. */
+    val youGet: Boolean = false,
+    /** The price on the listing, shown struck through when the agreed price is different. */
+    val listedPrice: Int? = null,
+    val category: Category = Category.OTHER,
 )
 
 /** A listing either person could add to the deal. */
@@ -43,10 +51,13 @@ data class AddableListingUi(
     val title: String,
     val price: Int,
     val isMine: Boolean,
+    val category: Category = Category.OTHER,
 )
 
 /** Everything the deal window draws. */
 data class DealWindowUi(
+    /** For "Sam's listings" and "Send to Sam". */
+    val partnerFirstName: String,
     val mode: DealMode,
     val title: String,
     val subtitle: String,
@@ -119,7 +130,9 @@ fun buildDealWindow(
         // Their listings first: usually you're adding something you want from them
         (partnerListings.map { it to false } + myListings.map { it to true })
             .filter { (listing, _) -> listing.isActive && listing.id !in inDeal }
-            .map { (listing, isMine) -> AddableListingUi(listing.id, listing.title, listing.price, isMine) }
+            .map { (listing, isMine) ->
+                AddableListingUi(listing.id, listing.title, listing.price, isMine, listing.category)
+            }
     }
 
     // Reuse the real rules, so the Send button can never allow something the repository would refuse
@@ -136,6 +149,7 @@ fun buildDealWindow(
     }
 
     return DealWindowUi(
+        partnerFirstName = partnerFirstName,
         mode = mode,
         title = title,
         subtitle = subtitle,
@@ -159,6 +173,10 @@ private fun dealRow(item: DealItem, listing: Listing?, myId: String, change: Row
     oldPrice = oldPrice,
     change = change,
     isAvailable = listing?.isActive == true,
+    isMine = listing?.ownerId == myId,
+    youGet = listing != null && receivesItem(listing, myId),
+    listedPrice = listing?.price,
+    category = listing?.category ?: Category.OTHER,
 )
 
 /** The deal sheet: closed, or open with its window while a change is saving or after it failed. */

@@ -121,6 +121,12 @@ class ChatViewModel(
         draftItems.value = null
     }
 
+    /** Back from Change deal: drops unsent edits but keeps the sheet open. */
+    fun discardChanges() {
+        draftItems.value = null
+        dealProgress.value = DealProgress()
+    }
+
     /** Adds a listing at its listed price. The price can be changed afterwards. */
     fun addToDeal(item: AddableListingUi) =
         editDraft { items -> items + DealItem(item.listingId, item.price) }

@@ -46,17 +46,17 @@ import edu.bu.terriertrade.ui.components.profile.TTAvatar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
-/** One conversation, used by navigation. Owns [ChatViewModel]. */
+/** One conversation, used by navigation. Owns [ChatViewModel] and the deal sheet. */
 @Composable
 fun ChatRoute(
     onBack: () -> Unit,
     onOpenProfile: (userId: String) -> Unit,
-    onOpenDeal: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ChatViewModel = viewModel(factory = ChatViewModel.Factory),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val draft by viewModel.draft.collectAsStateWithLifecycle()
+    val dealSheet by viewModel.dealSheet.collectAsStateWithLifecycle()
 
     ChatScreen(
         state = state,
@@ -65,8 +65,22 @@ fun ChatRoute(
         onSend = viewModel::send,
         onBack = onBack,
         onOpenProfile = onOpenProfile,
-        onOpenDeal = onOpenDeal,
+        onOpenDeal = viewModel::openDeal,
         modifier = modifier,
+    )
+
+    DealSheet(
+        state = dealSheet,
+        actions = DealSheetActions(
+            onClose = viewModel::closeDeal,
+            onAdd = viewModel::addToDeal,
+            onRemove = viewModel::removeFromDeal,
+            onPriceChange = viewModel::onPriceChange,
+            onSend = viewModel::sendChanges,
+            onDiscard = viewModel::discardChanges,
+            onAccept = viewModel::acceptChanges,
+            onDecline = viewModel::declineChanges,
+        ),
     )
 }
 

@@ -97,33 +97,42 @@ private fun EventLine(text: String, modifier: Modifier) {
     )
 }
 
+/** A suggested change. While it's still waiting, View opens the deal. Answered or replaced ones are greyed out. */
 @Composable
 private fun SuggestionCard(message: MessageUi, onOpenDeal: () -> Unit, modifier: Modifier) {
     val colors = MaterialTheme.colorScheme
+    val active = message.isActive
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = colors.primaryContainer.copy(alpha = 0.35f),
-        border = BorderStroke(1.dp, colors.primary),
+        color = if (active) colors.primaryContainer.copy(alpha = 0.35f) else colors.surface,
+        border = BorderStroke(1.dp, if (active) colors.primary else colors.outline),
     ) {
         Row(
             modifier = Modifier.padding(start = Spacing.md, top = Spacing.sm, bottom = Spacing.sm, end = Spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, tint = colors.primary)
+            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, tint = if (active) colors.primary else colors.onSurfaceVariant)
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = message.text, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = message.text,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (active) colors.onSurface else colors.onSurfaceVariant,
+                )
                 if (message.timeLabel.isNotEmpty()) {
-                    Text(
-                        text = message.timeLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.onSurfaceVariant,
-                    )
+                    Text(text = message.timeLabel, style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
                 }
             }
-            TextButton(onClick = onOpenDeal) {
-                Text("View")
+            if (active) {
+                TextButton(onClick = onOpenDeal) { Text("View") }
+            } else {
+                Text(
+                    text = "Closed",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.onSurfaceVariant,
+                    modifier = Modifier.padding(end = Spacing.sm),
+                )
             }
         }
     }
@@ -136,7 +145,8 @@ private fun MessageItemPreview() {
         MessageUi("1", "You requested TI-84 calculator", MessageKind.EVENT),
         MessageUi("2", "Hey! It is still available.", MessageKind.THEIRS, "35m"),
         MessageUi("3", "Great. Can we meet at GSU tomorrow? Would you do \$40?", MessageKind.MINE, "30m"),
-        MessageUi("4", "Sam suggested changes to the deal", MessageKind.SUGGESTION, "2m"),
+        MessageUi("4", "Sam suggested changes to the deal", MessageKind.SUGGESTION, "2m", isActive = true),
+        MessageUi("5", "You suggested changes to the deal", MessageKind.SUGGESTION, "1h"),
     )
     TTPreviewColumn {
         messages.forEach { MessageItem(message = it, onOpenDeal = {}) }
