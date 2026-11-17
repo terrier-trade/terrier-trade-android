@@ -17,6 +17,8 @@ data class MessageUi(
     val text: String,
     val kind: MessageKind,
     val timeLabel: String = "",
+    /** Suggestions only: true while this is still the proposal waiting for an answer. */
+    val isActive: Boolean = false,
 )
 
 /** What the deal bar shows on its right side. */
@@ -46,8 +48,12 @@ fun totalLabel(total: Int, partnerFirstName: String): String = when {
     else -> "No money"
 }
 
-fun Message.toUi(myId: String, partnerFirstName: String, nowMillis: Long): MessageUi {
-    val time = TimeFormat.ago(createdAt, nowMillis)
+fun Message.toUi(
+    myId: String,
+    partnerFirstName: String,
+    nowMillis: Long,
+    pendingProposalId: String? = null,
+): MessageUi {    val time = TimeFormat.ago(createdAt, nowMillis)
     return when (type) {
         MessageType.TEXT -> MessageUi(
             id = id,
@@ -62,12 +68,14 @@ fun Message.toUi(myId: String, partnerFirstName: String, nowMillis: Long): Messa
             text = (if (senderId == myId) "You" else partnerFirstName) + " " + text,
             kind = MessageKind.EVENT,
         )
+        // Messages can't be edited (firestore.rules), so a card is "open" while its proposal is the pending one
         MessageType.SUGGESTION -> MessageUi(
             id = id,
             text = if (senderId == myId) "You suggested changes to the deal"
             else "$partnerFirstName suggested changes to the deal",
             kind = MessageKind.SUGGESTION,
             timeLabel = time,
+            isActive = proposalId != null && proposalId == pendingProposalId,
         )
         MessageType.REVIEW_PROMPT -> MessageUi(
             id = id,
@@ -110,7 +118,7 @@ fun buildChatContent(
         partnerInitials = partner?.initials ?: "?",
         partnerRatingLabel = partner?.takeIf { it.reviewCount > 0 }
             ?.let { String.format(Locale.US, "%.1f", it.rating) } ?: "New",
-        messages = messages.map { it.toUi(myId, firstName, nowMillis) },
+        messages = messages.map { it.toUi(myId, firstName, nowMillis, chat.deal?.pending?.id) },
         dealBar = dealBar,
     )
 }
