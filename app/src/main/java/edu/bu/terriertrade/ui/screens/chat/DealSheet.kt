@@ -96,8 +96,6 @@ fun DealSheet(state: DealSheetState, actions: DealSheetActions) {
         shape = SheetShape,
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { DragHandle() },
-        // The prototype's dark edge along the top of every sheet
-        modifier = Modifier.border(1.5.dp, MaterialTheme.colorScheme.onSurface, SheetShape),
     ) {
         val window = state.window
         if (window == null) {

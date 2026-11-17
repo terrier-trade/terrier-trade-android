@@ -150,39 +150,43 @@ class ChatViewModel(
     /** Declines their changes, or withdraws mine. */
     fun declineChanges() = runDealAction { chatRepository.declineProposal(chatId) }
 
-    /** The chat, both people's listings and my draft, turned into the sheet. */
+    /** What the open sheet shows. Rebuilt when the chat, a listing, the draft or the saving state changes. */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeDealSheet(): Flow<DealSheetState> =
         combine(authRepository.currentUserId, chatRepository.observeChat(chatId)) { me, chat -> me to chat }
             .flatMapLatest { (me, chat) ->
                 val deal = chat?.deal
-                if (me == null || chat == null || deal == null) {
-                    flowOf(DealSheetState())
-                } else {
-                    val partnerId = chat.partnerId(me)
-                    combine(
-                        userRepository.observeUser(partnerId),
-                        listingRepository.observeListingsByOwner(me),
-                        listingRepository.observeListingsByOwner(partnerId),
-                        draftItems,
-                        dealProgress,
-                    ) { partner, mine, theirs, draft, progress ->
-                        DealSheetState(
-                            isOpen = true,
-                            window = buildDealWindow(
-                                myId = me,
-                                partnerFirstName = partner?.firstName ?: "them",
-                                deal = deal,
-                                draft = draft,
-                                // Every item in a deal belongs to one of the two of us
-                                listings = (mine + theirs).associateBy { it.id },
-                                myListings = mine,
-                                partnerListings = theirs,
-                            ),
-                            isSaving = progress.isSaving,
-                            error = progress.error,
-                        )
-                    }
+                if (me == null || chat == null || deal == null) return@flatMapLatest flowOf(DealSheetState())
+                val partnerId = chat.partnerId(me)
+
+                // Both owner lists only hold listings that are still up. They fill the "add" lists.
+                val ownerListings = combine(
+                    listingRepository.observeListingsByOwner(me),
+                    listingRepository.observeListingsByOwner(partnerId),
+                ) { mine, theirs -> mine to theirs }
+
+                combine(
+                    userRepository.observeUser(partnerId),
+                    ownerListings,
+                    observeDealListings(chat),
+                    draftItems,
+                    dealProgress,
+                ) { partner, (mine, theirs), inDeal, draft, progress ->
+                    DealSheetState(
+                        isOpen = true,
+                        window = buildDealWindow(
+                            myId = me,
+                            partnerFirstName = partner?.firstName ?: "them",
+                            deal = deal,
+                            draft = draft,
+                            // Deal items found by id win, so a removed listing still has its title and status
+                            listings = (mine + theirs).associateBy { it.id } + inDeal,
+                            myListings = mine,
+                            partnerListings = theirs,
+                        ),
+                        isSaving = progress.isSaving,
+                        error = progress.error,
+                    )
                 }
             }
             .catch { emit(DealSheetState()) }
@@ -215,9 +219,13 @@ class ChatViewModel(
 
     private data class DealProgress(val isSaving: Boolean = false, val error: String? = null)
 
-    /** Watches every listing in the deal, so the total updates if a listing changes. */
+    /**
+     * Watches every listing in the deal and in any waiting changes, looked up by id.
+     * Unlike the owner lists, this still finds removed listings, so they keep their real title.
+     */
     private fun observeDealListings(chat: Chat): Flow<Map<String, Listing>> {
-        val ids = chat.deal?.items?.map { it.listingId }.orEmpty()
+        val deal = chat.deal ?: return flowOf(emptyMap())
+        val ids = (deal.items + deal.pending?.items.orEmpty()).map { it.listingId }.distinct()
         if (ids.isEmpty()) return flowOf(emptyMap())
         return combine(ids.map { listingRepository.observeListing(it) }) { listings ->
             listings.filterNotNull().associateBy { it.id }

@@ -2,6 +2,7 @@ package edu.bu.terriertrade.data.deal
 
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.ListingType
 
 /**
@@ -19,6 +20,8 @@ fun dealTotal(items: List<DealItem>, listings: Map<String, Listing>, myId: Strin
     var total = 0
     for (item in items) {
         val listing = listings[item.listingId] ?: continue
+        // A removed listing can't change hands, so it adds nothing until someone takes it out of the deal
+        if (listing.status == ListingStatus.REMOVED) continue
         total += if (receivesItem(listing, myId)) item.agreedPrice else -item.agreedPrice
     }
     return total

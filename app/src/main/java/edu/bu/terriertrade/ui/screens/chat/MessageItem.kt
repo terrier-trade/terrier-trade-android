@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -97,42 +98,68 @@ private fun EventLine(text: String, modifier: Modifier) {
     )
 }
 
-/** A suggested change. While it's still waiting, View opens the deal. Answered or replaced ones are greyed out. */
+/** A suggested change: a red card while it's waiting, a grey line once it's answered or replaced. */
 @Composable
 private fun SuggestionCard(message: MessageUi, onOpenDeal: () -> Unit, modifier: Modifier) {
+    if (message.isActive) {
+        ActiveSuggestion(message = message, onOpenDeal = onOpenDeal, modifier = modifier)
+    } else {
+        ClosedSuggestion(message = message, modifier = modifier)
+    }
+}
+
+/** The one suggestion still waiting for an answer. View opens the deal sheet. */
+@Composable
+private fun ActiveSuggestion(message: MessageUi, onOpenDeal: () -> Unit, modifier: Modifier) {
     val colors = MaterialTheme.colorScheme
-    val active = message.isActive
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = if (active) colors.primaryContainer.copy(alpha = 0.35f) else colors.surface,
-        border = BorderStroke(1.dp, if (active) colors.primary else colors.outline),
+        color = colors.primaryContainer.copy(alpha = 0.35f),
+        border = BorderStroke(1.dp, colors.primary),
     ) {
         Row(
             modifier = Modifier.padding(start = Spacing.md, top = Spacing.sm, bottom = Spacing.sm, end = Spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, tint = if (active) colors.primary else colors.onSurfaceVariant)
+            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, tint = colors.primary)
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = message.text,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = if (active) colors.onSurface else colors.onSurfaceVariant,
-                )
+                Text(text = message.text, style = MaterialTheme.typography.titleSmall)
                 if (message.timeLabel.isNotEmpty()) {
                     Text(text = message.timeLabel, style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
                 }
             }
-            if (active) {
-                TextButton(onClick = onOpenDeal) { Text("View") }
-            } else {
-                Text(
-                    text = "Closed",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = colors.onSurfaceVariant,
-                    modifier = Modifier.padding(end = Spacing.sm),
-                )
+            TextButton(onClick = onOpenDeal) { Text("View") }
+        }
+    }
+}
+
+/**
+ * An answered or replaced suggestion. It's a centred grey pill like the other deal events,
+ * so it never looks like the other person's white message bubbles.
+ */
+@Composable
+private fun ClosedSuggestion(message: MessageUi, modifier: Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = Spacing.xs),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = colors.surfaceVariant,
+            contentColor = colors.onSurfaceVariant,
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(16.dp))
+                Text(text = "${message.text} · Closed", style = MaterialTheme.typography.labelMedium)
             }
         }
     }
