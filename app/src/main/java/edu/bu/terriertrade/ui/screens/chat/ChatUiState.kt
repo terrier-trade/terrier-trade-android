@@ -56,7 +56,8 @@ fun Message.toUi(myId: String, partnerFirstName: String, nowMillis: Long): Messa
             timeLabel = time,
         )
         MessageType.EVENT -> MessageUi(id = id, text = text, kind = MessageKind.EVENT)
-        MessageType.REQUEST -> MessageUi(
+        // Lines about something a person did: "You requested Desk lamp", "Sam accepted the changes"
+        MessageType.REQUEST, MessageType.ACTION -> MessageUi(
             id = id,
             text = (if (senderId == myId) "You" else partnerFirstName) + " " + text,
             kind = MessageKind.EVENT,
