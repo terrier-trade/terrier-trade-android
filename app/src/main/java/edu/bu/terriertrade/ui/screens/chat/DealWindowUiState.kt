@@ -160,3 +160,12 @@ private fun dealRow(item: DealItem, listing: Listing?, myId: String, change: Row
     change = change,
     isAvailable = listing?.isActive == true,
 )
+
+/** The deal sheet: closed, or open with its window while a change is saving or after it failed. */
+data class DealSheetState(
+    val isOpen: Boolean = false,
+    /** Null for a moment while the listings load. */
+    val window: DealWindowUi? = null,
+    val isSaving: Boolean = false,
+    val error: String? = null,
+)
