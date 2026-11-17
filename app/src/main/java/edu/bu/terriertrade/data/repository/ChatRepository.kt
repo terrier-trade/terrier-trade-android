@@ -2,13 +2,14 @@ package edu.bu.terriertrade.data.repository
 
 import edu.bu.terriertrade.data.deal.RequestResult
 import edu.bu.terriertrade.data.model.Chat
+import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.Message
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Chats, messages and requests. Deal changes (propose, accept, remove, mark done)
- * are added by the deal feature on top of this.
+ * Chats, messages, requests and changes to the deal inside a chat.
+ * Every deal change follows DealRules and saves the deal and its chat message together.
  */
 interface ChatRepository {
     /** The signed-in student's chats, most recent first. */
@@ -29,4 +30,13 @@ interface ChatRepository {
      * and starts a deal with the listing when there isn't one yet. See RequestRules.
      */
     suspend fun requestListing(listing: Listing): Result<RequestResult>
+
+    /** Suggests [items] as the new deal. The other person accepts or declines. See DealRules.propose. */
+    suspend fun proposeDeal(chatId: String, items: List<DealItem>): Result<Unit>
+
+    /** Accepts the other person's suggested changes. See DealRules.accept. */
+    suspend fun acceptProposal(chatId: String): Result<Unit>
+
+    /** Declines the other person's suggested changes, or withdraws mine. See DealRules.decline. */
+    suspend fun declineProposal(chatId: String): Result<Unit>
 }

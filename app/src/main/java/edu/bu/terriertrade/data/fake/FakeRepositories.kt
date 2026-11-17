@@ -1,5 +1,7 @@
 package edu.bu.terriertrade.data.fake
 
+import edu.bu.terriertrade.data.deal.DealPlan
+import edu.bu.terriertrade.data.deal.DealRules
 import edu.bu.terriertrade.data.model.Chat
 import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.ListingStatus
@@ -17,6 +19,9 @@ import edu.bu.terriertrade.data.deal.RequestOutcome
 import edu.bu.terriertrade.data.deal.RequestPlan
 import edu.bu.terriertrade.data.deal.RequestResult
 import edu.bu.terriertrade.data.deal.RequestRules
+import edu.bu.terriertrade.data.model.Deal
+import edu.bu.terriertrade.data.model.DealItem
+import edu.bu.terriertrade.data.repository.DataError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -180,6 +185,41 @@ class FakeChatRepository(private val auth: AuthRepository) : ChatRepository {
             }
         }
         return Result.success(RequestResult(chatId, outcome))
+    }
+
+    override suspend fun proposeDeal(chatId: String, items: List<DealItem>): Result<Unit> =
+        changeDeal(chatId) { deal, me, messageId, now ->
+            DealRules.propose(deal, me, items, proposalId = messageId, now = now)
+        }
+
+    override suspend fun acceptProposal(chatId: String): Result<Unit> =
+        changeDeal(chatId) { deal, me, _, _ -> DealRules.accept(deal, me) }
+
+    override suspend fun declineProposal(chatId: String): Result<Unit> =
+        changeDeal(chatId) { deal, me, _, _ -> DealRules.decline(deal, me) }
+
+    /** Same steps as the Firestore version, without the transaction: decide, then save the deal and message. */
+    private fun changeDeal(
+        chatId: String,
+        decide: (deal: Deal?, me: String, messageId: String, now: Long) -> DealPlan,
+    ): Result<Unit> {
+        val me = auth.currentUserId.value ?: return Result.failure(notSignedIn())
+        val chat = chats.value.find { it.id == chatId } ?: return Result.failure(DataError("This chat isn't available."))
+        val messageId = "m${nextId++}"
+        val now = System.currentTimeMillis()
+
+        return when (val plan = decide(chat.deal, me, messageId, now)) {
+            is DealPlan.NotAllowed -> Result.failure(DataError(plan.reason))
+            is DealPlan.Change -> {
+                messages.update {
+                    it + Message(messageId, chatId, me, plan.messageType, plan.messageText, plan.proposalId, now)
+                }
+                chats.update { all ->
+                    all.map { if (it.id == chatId) it.copy(deal = plan.deal, lastMessage = plan.preview, updatedAt = now) else it }
+                }
+                Result.success(Unit)
+            }
+        }
     }
 }
 

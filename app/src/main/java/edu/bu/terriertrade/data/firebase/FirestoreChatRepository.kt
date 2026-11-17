@@ -3,6 +3,7 @@ package edu.bu.terriertrade.data.firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import edu.bu.terriertrade.data.deal.DealRules
 import edu.bu.terriertrade.data.model.Chat
 import edu.bu.terriertrade.data.model.Message
 import edu.bu.terriertrade.data.model.MessageType
@@ -11,6 +12,9 @@ import edu.bu.terriertrade.data.deal.RequestOutcome
 import edu.bu.terriertrade.data.deal.RequestPlan
 import edu.bu.terriertrade.data.deal.RequestResult
 import edu.bu.terriertrade.data.deal.RequestRules
+import edu.bu.terriertrade.data.model.Deal
+import edu.bu.terriertrade.data.deal.DealPlan
+import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.repository.DataError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,7 +28,8 @@ import kotlinx.coroutines.tasks.await
 /**
  * The real ChatRepository: chats live at chats/{chatId}, messages at chats/{chatId}/messages.
  * Only the two students in a chat can read it (firestore.rules).
- * A request saves its deal on the chat document and its REQUEST message in one transaction.
+ * A request, and every change to the deal, saves the deal on the chat document
+ * and its chat message together in one transaction.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class FirestoreChatRepository(
@@ -127,6 +132,66 @@ class FirestoreChatRepository(
 
             RequestResult(chatId, outcome)
         }
+
+    override suspend fun proposeDeal(chatId: String, items: List<DealItem>): Result<Unit> =
+        changeDeal(chatId, "Couldn't send your changes. Try again.") { deal, me, messageId, now ->
+            // The proposal reuses the message's id, so the suggestion card can find its proposal
+            DealRules.propose(deal, me, items, proposalId = messageId, now = now)
+        }
+
+    override suspend fun acceptProposal(chatId: String): Result<Unit> =
+        changeDeal(chatId, "Couldn't accept the changes. Try again.") { deal, me, _, _ ->
+            DealRules.accept(deal, me)
+        }
+
+    override suspend fun declineProposal(chatId: String): Result<Unit> =
+        changeDeal(chatId, "Couldn't update the deal. Try again.") { deal, me, _, _ ->
+            DealRules.decline(deal, me)
+        }
+
+    /**
+     * One deal change as a transaction: read the latest deal, ask [decide] what to do,
+     * then save the new deal and its chat message together, or neither.
+     * If the other person changes the deal at the same moment, Firestore runs this again
+     * with their version, so a change is never made against an old deal.
+     */
+    private suspend fun changeDeal(
+        chatId: String,
+        failMessage: String,
+        decide: (deal: Deal?, me: String, messageId: String, now: Long) -> DealPlan,
+    ): Result<Unit> = firestoreResult(failMessage) {
+        val me = signedInUidOrThrow(auth)
+        val chatRef = chats.document(chatId)
+        val messageRef = chatRef.collection(MESSAGES).document()
+
+        val plan = db.runTransaction { transaction ->
+            val deal = dealFromMap(transaction.get(chatRef).get("deal"))
+            val now = System.currentTimeMillis()
+            val plan = decide(deal, me, messageRef.id, now)
+
+            if (plan is DealPlan.Change) {
+                val message = Message(
+                    id = messageRef.id,
+                    chatId = chatId,
+                    senderId = me,
+                    type = plan.messageType,
+                    text = plan.messageText,
+                    proposalId = plan.proposalId,
+                    createdAt = now,
+                )
+                transaction.set(messageRef, message.toMap())
+                transaction.update(
+                    chatRef,
+                    mapOf("deal" to plan.deal.toMap(), "lastMessage" to plan.preview, "updatedAt" to now),
+                )
+            }
+            plan
+        }.await()
+
+        // Thrown outside the transaction, so the student sees the real reason, not failMessage
+        if (plan is DealPlan.NotAllowed) throw DataError(plan.reason)
+        Unit
+    }
 
     companion object {
         const val COLLECTION = "chats"
