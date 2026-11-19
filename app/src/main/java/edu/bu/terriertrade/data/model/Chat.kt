@@ -22,6 +22,12 @@ enum class MessageType {
     /** "requested TI-84 calculator". The screen adds "You" or the sender's name in front. */
     REQUEST,
 
+    /**
+     * Something a person did to the deal, like "accepted the changes".
+     * Like REQUEST, the screen adds "You" or the sender's name in front.
+     */
+    ACTION,
+
     /** A deal change waiting for accept or decline. Links to [Message.proposalId]. */
     SUGGESTION,
 

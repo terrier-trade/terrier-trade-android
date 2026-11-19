@@ -117,4 +117,12 @@ class ChatViewModelTest {
         assertEquals("Sam requested Desk lamp", request.toUi(myId = "alex", partnerFirstName = "Sam", nowMillis = 0L).text)
         assertEquals("You requested Desk lamp", request.toUi(myId = "sam", partnerFirstName = "Alex", nowMillis = 0L).text)
     }
+
+    @Test
+    fun actionMessage_saysYouOrTheirName() {
+        val accepted = Message("a1", "c1", senderId = "sam", type = MessageType.ACTION, text = "accepted the changes")
+
+        assertEquals("Sam accepted the changes", accepted.toUi(myId = "alex", partnerFirstName = "Sam", nowMillis = 0L).text)
+        assertEquals("You accepted the changes", accepted.toUi(myId = "sam", partnerFirstName = "Alex", nowMillis = 0L).text)
+    }
 }

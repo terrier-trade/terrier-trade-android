@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -97,8 +98,19 @@ private fun EventLine(text: String, modifier: Modifier) {
     )
 }
 
+/** A suggested change: a red card while it's waiting, a grey line once it's answered or replaced. */
 @Composable
 private fun SuggestionCard(message: MessageUi, onOpenDeal: () -> Unit, modifier: Modifier) {
+    if (message.isActive) {
+        ActiveSuggestion(message = message, onOpenDeal = onOpenDeal, modifier = modifier)
+    } else {
+        ClosedSuggestion(message = message, modifier = modifier)
+    }
+}
+
+/** The one suggestion still waiting for an answer. View opens the deal sheet. */
+@Composable
+private fun ActiveSuggestion(message: MessageUi, onOpenDeal: () -> Unit, modifier: Modifier) {
     val colors = MaterialTheme.colorScheme
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -115,15 +127,39 @@ private fun SuggestionCard(message: MessageUi, onOpenDeal: () -> Unit, modifier:
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = message.text, style = MaterialTheme.typography.titleSmall)
                 if (message.timeLabel.isNotEmpty()) {
-                    Text(
-                        text = message.timeLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.onSurfaceVariant,
-                    )
+                    Text(text = message.timeLabel, style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
                 }
             }
-            TextButton(onClick = onOpenDeal) {
-                Text("View")
+            TextButton(onClick = onOpenDeal) { Text("View") }
+        }
+    }
+}
+
+/**
+ * An answered or replaced suggestion. It's a centred grey pill like the other deal events,
+ * so it never looks like the other person's white message bubbles.
+ */
+@Composable
+private fun ClosedSuggestion(message: MessageUi, modifier: Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = Spacing.xs),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = colors.surfaceVariant,
+            contentColor = colors.onSurfaceVariant,
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(16.dp))
+                Text(text = "${message.text} · Closed", style = MaterialTheme.typography.labelMedium)
             }
         }
     }
@@ -136,7 +172,8 @@ private fun MessageItemPreview() {
         MessageUi("1", "You requested TI-84 calculator", MessageKind.EVENT),
         MessageUi("2", "Hey! It is still available.", MessageKind.THEIRS, "35m"),
         MessageUi("3", "Great. Can we meet at GSU tomorrow? Would you do \$40?", MessageKind.MINE, "30m"),
-        MessageUi("4", "Sam suggested changes to the deal", MessageKind.SUGGESTION, "2m"),
+        MessageUi("4", "Sam suggested changes to the deal", MessageKind.SUGGESTION, "2m", isActive = true),
+        MessageUi("5", "You suggested changes to the deal", MessageKind.SUGGESTION, "1h"),
     )
     TTPreviewColumn {
         messages.forEach { MessageItem(message = it, onOpenDeal = {}) }

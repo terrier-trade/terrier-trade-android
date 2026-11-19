@@ -24,7 +24,6 @@ fun NavGraphBuilder.chatScreens(navController: NavHostController) {
         ChatRoute(
             onBack = { navController.popBackStack() },
             onOpenProfile = { userId -> navController.navigate(Routes.userProfile(userId)) },
-            onOpenDeal = { /* The deal sheet comes with the deal window branch */ },
         )
     }
     composable(Routes.NOTIFICATIONS) {
