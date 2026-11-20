@@ -219,6 +219,16 @@ class FakeChatRepository(private val auth: AuthRepository) : ChatRepository {
                 }
                 Result.success(Unit)
             }
+            // The deal is over: the chat goes back to having no deal. Step 2 also marks the listings sold.
+            is DealPlan.End -> {
+                messages.update {
+                    it + Message(messageId, chatId, me, plan.messageType, plan.messageText, createdAt = now)
+                }
+                chats.update { all ->
+                    all.map { if (it.id == chatId) it.copy(deal = null, lastMessage = plan.preview, updatedAt = now) else it }
+                }
+                Result.success(Unit)
+            }
         }
     }
 }
