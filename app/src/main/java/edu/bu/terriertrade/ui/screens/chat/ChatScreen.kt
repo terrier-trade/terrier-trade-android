@@ -80,6 +80,8 @@ fun ChatRoute(
             onDiscard = viewModel::discardChanges,
             onAccept = viewModel::acceptChanges,
             onDecline = viewModel::declineChanges,
+            onMarkDone = viewModel::markDone,
+            onCancelDeal = viewModel::cancelDeal,
         ),
     )
 }
