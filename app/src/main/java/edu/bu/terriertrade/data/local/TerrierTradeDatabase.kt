@@ -8,9 +8,9 @@ import androidx.room.RoomDatabase
 /**
  * The app's Room database. It only holds a cache of data that also lives in Firestore,
  * so when the version goes up it is simply wiped and refilled (no migrations to write).
- * Bump [version] whenever an entity changes.
+ * Bump [version] whenever an entity changes. Version 2 added the search index (ListingFtsEntity).
  */
-@Database(entities = [ListingEntity::class], version = 1, exportSchema = false)
+@Database(entities = [ListingEntity::class, ListingFtsEntity::class], version = 2, exportSchema = false)
 abstract class TerrierTradeDatabase : RoomDatabase() {
 
     abstract fun listingDao(): ListingDao

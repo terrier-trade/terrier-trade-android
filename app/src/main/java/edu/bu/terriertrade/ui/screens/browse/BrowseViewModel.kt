@@ -13,6 +13,7 @@ import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.User
 import edu.bu.terriertrade.data.repository.ChatRepository
 import edu.bu.terriertrade.data.repository.ListingRepository
+import edu.bu.terriertrade.data.repository.ListingSearch
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
 import edu.bu.terriertrade.di.appContainer
@@ -33,12 +34,14 @@ import kotlinx.coroutines.launch
 /**
  * The Browse feed. Listings, their sellers and the student's hearts come live from the repositories,
  * so a new post shows up straight away. Search, category and type chips filter on top.
+ * Search uses [listingSearch] (Room full-text search over title and description).
  */
 class BrowseViewModel(
     private val listingRepository: ListingRepository,
     private val userRepository: UserRepository,
     private val savedRepository: SavedListingsRepository,
     private val chatRepository: ChatRepository,
+    private val listingSearch: ListingSearch,
     private val now: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
 
@@ -51,6 +54,11 @@ class BrowseViewModel(
     // but a request needs the real Listing: owner, price, type and status.
     private var listingsById: Map<String, Listing> = emptyMap()
     private var loadJob: Job? = null
+
+    // Ids matching the search bar, from full-text search. Null while there's no search, before the
+    // first result, or if search failed; then the feed falls back to matching titles.
+    private var searchMatches: Set<String>? = null
+    private var searchJob: Job? = null
 
     init {
         load()
@@ -82,7 +90,29 @@ class BrowseViewModel(
         }
     }
 
-    fun onQueryChange(query: String) = update { copy(query = query) }
+    fun onQueryChange(query: String) {
+        stopSearch()
+        update { copy(query = query) }
+        if (query.isBlank()) return
+        searchJob = viewModelScope.launch {
+            listingSearch.observeMatchingIds(query)
+                .catch {
+                    // Keep searching by title instead of showing nothing.
+                    searchMatches = null
+                    applyFilters()
+                }
+                .collect { ids ->
+                    searchMatches = ids
+                    applyFilters()
+                }
+        }
+    }
+
+    private fun stopSearch() {
+        searchJob?.cancel()
+        searchJob = null
+        searchMatches = null
+    }
 
     /** Tapping the selected category again clears it. */
     fun onCategorySelect(category: Category) =
@@ -92,8 +122,11 @@ class BrowseViewModel(
     fun onFilterSelect(filter: BrowseFilter) =
         update { copy(filter = filter, category = if (filter == BrowseFilter.ALL) null else category) }
 
-    fun clearFilters() = update {
-        copy(query = "", category = null, filter = BrowseFilter.ALL, filters = BrowseFilters(), draftFilters = BrowseFilters())
+    fun clearFilters() {
+        stopSearch()
+        update {
+            copy(query = "", category = null, filter = BrowseFilter.ALL, filters = BrowseFilters(), draftFilters = BrowseFilters())
+        }
     }
 
     // Filters sheet
@@ -118,7 +151,7 @@ class BrowseViewModel(
 
     private fun updateDraftCount() {
         val preview = uiState.copy(filters = uiState.draftFilters)
-        uiState = uiState.copy(draftResultCount = filterListings(allListings, preview).size)
+        uiState = uiState.copy(draftResultCount = filterListings(allListings, preview, searchMatches).size)
     }
     /** Saved in SavedListingsRepository, so the heart is the same on every screen. */
     fun onToggleFavorite(listingId: String) {
@@ -165,8 +198,8 @@ class BrowseViewModel(
 
     private fun applyFilters() {
         uiState = uiState.copy(
-            listings = filterListings(allListings, uiState),
-            wanted = filterWanted(allWanted, uiState.query),
+            listings = filterListings(allListings, uiState, searchMatches),
+            wanted = filterWanted(allWanted, uiState.query, searchMatches),
         )
     }
 
@@ -192,25 +225,44 @@ class BrowseViewModel(
                     userRepository = appContainer.userRepository,
                     savedRepository = appContainer.savedListingsRepository,
                     chatRepository = appContainer.chatRepository,
+                    listingSearch = appContainer.listingSearch,
                 )
             }
         }
 
-        fun filterListings(listings: List<ListingUi>, state: BrowseUiState): List<ListingUi> {
+        /**
+         * Applies search, type, category and the Filters sheet. [searchMatches] are the ids full-text
+         * search found for the query; when null, the query is matched against titles instead.
+         */
+        fun filterListings(
+            listings: List<ListingUi>,
+            state: BrowseUiState,
+            searchMatches: Set<String>? = null,
+        ): List<ListingUi> {
             if (state.filter == BrowseFilter.LOOKING_FOR) return emptyList()
             val text = state.query.trim()
             val matching = listings.filter { listing ->
                 matchesType(listing.type, state.filter) &&
                         (state.category == null || listing.category == state.category) &&
-                        (text.isEmpty() || listing.title.contains(text, ignoreCase = true)) &&
+                        matchesSearch(listing.id, listing.title, text, searchMatches) &&
                         state.filters.matches(listing)
             }
             return state.filters.sort(matching)
         }
 
-        fun filterWanted(wanted: List<WantedPostUi>, query: String): List<WantedPostUi> {
+        fun filterWanted(
+            wanted: List<WantedPostUi>,
+            query: String,
+            searchMatches: Set<String>? = null,
+        ): List<WantedPostUi> {
             val text = query.trim()
-            return if (text.isEmpty()) wanted else wanted.filter { it.title.contains(text, ignoreCase = true) }
+            return wanted.filter { matchesSearch(it.id, it.title, text, searchMatches) }
+        }
+
+        private fun matchesSearch(id: String, title: String, text: String, searchMatches: Set<String>?): Boolean = when {
+            text.isEmpty() -> true
+            searchMatches != null -> id in searchMatches
+            else -> title.contains(text, ignoreCase = true)
         }
 
         private fun matchesType(type: ListingType, filter: BrowseFilter): Boolean = when (filter) {

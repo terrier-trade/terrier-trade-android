@@ -9,6 +9,7 @@ import edu.bu.terriertrade.data.firebase.FirestoreReviewRepository
 import edu.bu.terriertrade.data.firebase.FirestoreSavedListingsRepository
 import edu.bu.terriertrade.data.firebase.FirestoreUserRepository
 import edu.bu.terriertrade.data.local.CachedListingRepository
+import edu.bu.terriertrade.data.local.RoomListingSearch
 import edu.bu.terriertrade.data.local.TerrierTradeDatabase
 import edu.bu.terriertrade.data.network.NetworkMonitor
 import edu.bu.terriertrade.data.openlibrary.OpenLibraryBookLookup
@@ -16,6 +17,7 @@ import edu.bu.terriertrade.data.repository.AuthRepository
 import edu.bu.terriertrade.data.repository.BookLookup
 import edu.bu.terriertrade.data.repository.ChatRepository
 import edu.bu.terriertrade.data.repository.ListingRepository
+import edu.bu.terriertrade.data.repository.ListingSearch
 import edu.bu.terriertrade.data.repository.PasswordReset
 import edu.bu.terriertrade.data.repository.ReviewRepository
 import edu.bu.terriertrade.data.repository.SavedListingsRepository
@@ -30,6 +32,7 @@ interface AppContainer {
     val authRepository: AuthRepository
     val userRepository: UserRepository
     val listingRepository: ListingRepository
+    val listingSearch: ListingSearch
     val savedListingsRepository: SavedListingsRepository
     val chatRepository: ChatRepository
     val reviewRepository: ReviewRepository
@@ -59,6 +62,9 @@ class DefaultAppContainer(context: Context) : AppContainer {
         remote = FirestoreListingRepository(),
         dao = database.listingDao(),
     )
+
+    // Search runs on the listings saved in Room, using its full-text index.
+    override val listingSearch: ListingSearch = RoomListingSearch(database.listingDao())
 
     override val savedListingsRepository: SavedListingsRepository = FirestoreSavedListingsRepository()
 

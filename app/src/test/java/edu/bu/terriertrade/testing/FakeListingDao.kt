@@ -25,6 +25,14 @@ class FakeListingDao : ListingDao() {
             table.values.filter { it.ownerId == ownerId && it.status != "REMOVED" }.sortedByDescending { it.createdAt }
         }
 
+    // Same matching rule as the real full-text index: every word must start a word in title or description.
+    override fun observeActiveIdsMatching(ftsQuery: String): Flow<List<String>> =
+        rows.map { table ->
+            table.values
+                .filter { it.status == "ACTIVE" && matchesEveryWord("${it.title} ${it.description}", ftsQuery) }
+                .map { it.id }
+        }
+
     override suspend fun upsert(listing: ListingEntity) {
         rows.update { it + (listing.id to listing) }
     }
