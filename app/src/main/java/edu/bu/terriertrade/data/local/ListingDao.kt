@@ -19,6 +19,19 @@ abstract class ListingDao {
     @Query("SELECT * FROM listings WHERE ownerId = :ownerId AND status != 'REMOVED' ORDER BY createdAt DESC")
     abstract fun observeByOwner(ownerId: String): Flow<List<ListingEntity>>
 
+    /**
+     * Ids of ACTIVE listings matching an FTS query from toFtsQuery, such as "calc* text*".
+     * Room watches both tables, so the result updates when the cache does.
+     */
+    @Query(
+        """
+        SELECT listings.id FROM listings
+        JOIN listings_fts ON listings.rowid = listings_fts.rowid
+        WHERE listings_fts MATCH :ftsQuery AND listings.status = 'ACTIVE'
+        """,
+    )
+    abstract fun observeActiveIdsMatching(ftsQuery: String): Flow<List<String>>
+
     @Upsert
     abstract suspend fun upsert(listing: ListingEntity)
 
