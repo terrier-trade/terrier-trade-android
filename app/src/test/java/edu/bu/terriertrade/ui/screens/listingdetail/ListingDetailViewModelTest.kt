@@ -8,6 +8,7 @@ import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.User
+import edu.bu.terriertrade.data.repository.DataError
 import edu.bu.terriertrade.testing.InMemoryListingRepository
 import edu.bu.terriertrade.testing.InMemorySavedRepository
 import edu.bu.terriertrade.testing.InMemoryUserRepository
@@ -66,6 +67,25 @@ class ListingDetailViewModelTest {
         val vm = viewModel().apply { load("book-1") }
         listingRepo.listings.update { all -> all.map { it.copy(status = ListingStatus.REMOVED) } }
         assertTrue(vm.uiState.notFound)
+    }
+
+    @Test
+    fun loadFails_showsErrorNotNotFound() {
+        listingRepo.observeError = DataError("You're offline.")
+        val vm = viewModel().apply { load("book-1") }
+        assertFalse(vm.uiState.isLoading)
+        assertEquals("You're offline.", vm.uiState.errorMessage)
+        assertFalse(vm.uiState.notFound)
+    }
+
+    @Test
+    fun retry_afterError_loadsListing() {
+        listingRepo.observeError = DataError("You're offline.")
+        val vm = viewModel().apply { load("book-1") }
+        listingRepo.observeError = null
+        vm.retry()
+        assertNull(vm.uiState.errorMessage)
+        assertEquals("Calculus textbook", vm.uiState.listing?.title)
     }
 
     @Test

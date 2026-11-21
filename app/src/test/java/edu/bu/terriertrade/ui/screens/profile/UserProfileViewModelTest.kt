@@ -7,10 +7,15 @@ import edu.bu.terriertrade.data.fake.FakeReviewRepository
 import edu.bu.terriertrade.data.fake.FakeSavedListingsRepository
 import edu.bu.terriertrade.data.fake.FakeUserRepository
 import edu.bu.terriertrade.data.fake.SampleData
+import edu.bu.terriertrade.data.repository.DataError
+import edu.bu.terriertrade.data.repository.ListingRepository
+import edu.bu.terriertrade.testing.InMemoryListingRepository
 import edu.bu.terriertrade.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -28,14 +33,39 @@ class UserProfileViewModelTest {
     private val auth = FakeAuthRepository()
     private val chatRepo = FakeChatRepository(auth)
 
-    private fun viewModel() = UserProfileViewModel(
+    private fun viewModel(
+        listingRepository: ListingRepository = FakeListingRepository(auth),
+    ) = UserProfileViewModel(
         authRepository = auth,
         userRepository = FakeUserRepository(),
-        listingRepository = FakeListingRepository(auth),
+        listingRepository = listingRepository,
         savedRepository = FakeSavedListingsRepository(),
         reviewRepository = FakeReviewRepository(),
         chatRepository = chatRepo,
     )
+
+    /** A failed load shows an error with retry, not "Profile not found". */
+    @Test
+    fun loadFails_showsErrorNotNotFound() {
+        val listings = InMemoryListingRepository().apply { observeError = DataError("You're offline.") }
+        val vm = viewModel(listingRepository = listings).apply { load("sam") }
+
+        assertFalse(vm.uiState.isLoading)
+        assertEquals("You're offline.", vm.uiState.errorMessage)
+        assertFalse(vm.uiState.notFound)
+    }
+
+    @Test
+    fun retry_afterError_loadsProfile() {
+        val listings = InMemoryListingRepository().apply { observeError = DataError("You're offline.") }
+        val vm = viewModel(listingRepository = listings).apply { load("sam") }
+
+        listings.observeError = null
+        vm.retry()
+
+        assertNull(vm.uiState.errorMessage)
+        assertNotNull(vm.uiState.header)
+    }
 
     /** An existing chat is reused, not duplicated. */
     @Test
