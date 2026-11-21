@@ -6,7 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import edu.bu.terriertrade.navigation.Routes
-import edu.bu.terriertrade.ui.screens.placeholder.PlaceholderScreen
+import edu.bu.terriertrade.ui.screens.profile.EditProfileRoute
 import edu.bu.terriertrade.ui.screens.profile.MyProfileRoute
 import edu.bu.terriertrade.ui.screens.profile.UserProfileRoute
 
@@ -15,10 +15,11 @@ fun NavGraphBuilder.profileScreens(navController: NavHostController) {
     composable(Routes.PROFILE) {
         MyProfileRoute(
             onListingClick = { listingId -> navController.navigate(Routes.listingDetail(listingId)) },
+            onEditProfileClick = { navController.navigate(Routes.EDIT_PROFILE) },
         )
     }
     composable(Routes.EDIT_PROFILE) {
-        PlaceholderScreen(title = "Edit profile", onBack = { navController.popBackStack() })
+        EditProfileRoute(onDone = { navController.popBackStack() })
     }
     composable(
         route = Routes.USER_PROFILE,
