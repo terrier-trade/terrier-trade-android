@@ -9,7 +9,9 @@ import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.PriceUnit
 import edu.bu.terriertrade.data.model.User
+import edu.bu.terriertrade.data.repository.DataError
 import edu.bu.terriertrade.testing.InMemoryListingRepository
+import edu.bu.terriertrade.testing.InMemoryListingSearch
 import edu.bu.terriertrade.testing.InMemorySavedRepository
 import edu.bu.terriertrade.testing.InMemoryUserRepository
 import edu.bu.terriertrade.testing.MainDispatcherRule
@@ -46,7 +48,7 @@ class BrowseViewModelTest {
     )
     private val tickets = Listing(
         id = "3", ownerId = "leo", type = ListingType.TICKET, title = "Hockey vs BC", price = 25,
-        category = Category.TICKETS, quantity = 2, createdAt = hoursAgo(3),
+        description = "Two seats in section 104", category = Category.TICKETS, quantity = 2, createdAt = hoursAgo(3),
     )
     private val chair = Listing(
         id = "4", ownerId = "leo", type = ListingType.ITEM, title = "Desk chair", price = 40,
@@ -60,12 +62,13 @@ class BrowseViewModelTest {
     private val listingRepo = InMemoryListingRepository(listOf(book, tutoring, tickets, chair, wantedTutor))
     private val userRepo = InMemoryUserRepository(listOf(maya))
     private val savedRepo = InMemorySavedRepository()
+    private val search = InMemoryListingSearch(listingRepo)
 
     // Signed in as "alex". The sample chats already include one with Maya ("c_maya") and none with Leo.
     private val auth = FakeAuthRepository()
     private val chatRepo = FakeChatRepository(auth)
 
-    private fun viewModel() = BrowseViewModel(listingRepo, userRepo, savedRepo, chatRepo, now = { now })
+    private fun viewModel() = BrowseViewModel(listingRepo, userRepo, savedRepo, chatRepo, search, now = { now })
     private fun BrowseViewModel.titles() = uiState.listings.map { it.title }
 
     @Test
@@ -145,6 +148,61 @@ class BrowseViewModelTest {
         val vm = viewModel().apply { onQueryChange("  CALCULUS ") }
         assertEquals(listOf("Calculus textbook"), vm.titles())
         assertFalse(vm.uiState.showWantedStrip)
+    }
+
+    /** Full-text search looks in the description too, and a word can be just its start. */
+    @Test
+    fun search_findsWordStartsInTheDescription() {
+        val vm = viewModel().apply { onQueryChange("sect") }
+        assertEquals(listOf("Hockey vs BC"), vm.titles())
+    }
+
+    @Test
+    fun search_needsEveryWord() {
+        val vm = viewModel().apply { onQueryChange("calculus chair") }
+        assertTrue(vm.titles().isEmpty())
+    }
+
+    @Test
+    fun search_findsLookingForNotes() {
+        val vm = viewModel().apply {
+            onFilterSelect(BrowseFilter.LOOKING_FOR)
+            onQueryChange("tut")
+        }
+        assertEquals(listOf("Math tutor for MA 124"), vm.uiState.wanted.map { it.title })
+    }
+
+    @Test
+    fun search_keepsOtherFilters() {
+        val vm = viewModel().apply {
+            onFilterSelect(BrowseFilter.SERVICES)
+            onQueryChange("c")
+        }
+        assertEquals(listOf("CS 330 tutoring"), vm.titles())
+    }
+
+    /** A new post that matches shows up in the results without searching again. */
+    @Test
+    fun search_updatesWhenListingsChange() {
+        val vm = viewModel().apply { onQueryChange("lamp") }
+        assertTrue(vm.titles().isEmpty())
+
+        listingRepo.listings.update {
+            it + Listing(
+                id = "5", ownerId = "maya", type = ListingType.ITEM, title = "Desk lamp", price = 8,
+                category = Category.FURNITURE, condition = Condition.GOOD, createdAt = hoursAgo(0),
+            )
+        }
+
+        assertEquals(listOf("Desk lamp"), vm.titles())
+    }
+
+    /** If full-text search fails, the feed still searches titles instead of showing nothing. */
+    @Test
+    fun searchFails_fallsBackToTitles() {
+        search.error = DataError("Search isn't available.")
+        val vm = viewModel().apply { onQueryChange("desk") }
+        assertEquals(listOf("Desk chair"), vm.titles())
     }
 
     @Test
