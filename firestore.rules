@@ -18,6 +18,16 @@ service cloud.firestore {
         get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds;
     }
 
+    // In a finished deal, the other person may mark your listing sold and change nothing else.
+    // soldInChatId names the deal's chat, and both of you must be in it.
+    function isSoldInSharedChat() {
+      let chat = get(/databases/$(database)/documents/chats/$(request.resource.data.soldInChatId)).data;
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'soldInChatId'])
+        && request.resource.data.status == 'SOLD'
+        && request.auth.uid in chat.participantIds
+        && resource.data.ownerId in chat.participantIds;
+    }
+
     // Profiles: any student can read, only you can write yours
     match /users/{uid} {
       allow read: if isBuStudent();
@@ -29,11 +39,13 @@ service cloud.firestore {
       allow read, write: if isMe(uid);
     }
 
-    // Listings: any student can read, only the owner can create or edit
+    // Listings: any student can read, only the owner can create or edit.
+    // The one exception: the other person in a finished deal can mark it sold.
     match /listings/{listingId} {
       allow read: if isBuStudent();
       allow create: if isBuStudent() && request.resource.data.ownerId == request.auth.uid;
-      allow update: if isBuStudent() && resource.data.ownerId == request.auth.uid;
+      allow update: if isBuStudent()
+        && (resource.data.ownerId == request.auth.uid || isSoldInSharedChat());
     }
 
     // Chats and deals: only the two people in the chat

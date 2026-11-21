@@ -1,6 +1,7 @@
 package edu.bu.terriertrade.data.firebase
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import edu.bu.terriertrade.data.deal.DealRules
@@ -16,6 +17,7 @@ import edu.bu.terriertrade.data.model.Deal
 import edu.bu.terriertrade.data.deal.DealPlan
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.ListingStatus
 import edu.bu.terriertrade.data.repository.DataError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +40,8 @@ class FirestoreChatRepository(
 ) : ChatRepository {
 
     private val chats get() = db.collection(COLLECTION)
+
+    private val listingDocs get() = db.collection(FirestoreListingRepository.COLLECTION)
 
     override fun observeChats(): Flow<List<Chat>> =
         auth.verifiedUidFlow().flatMapLatest { uid ->
@@ -134,56 +138,90 @@ class FirestoreChatRepository(
         }
 
     override suspend fun proposeDeal(chatId: String, items: List<DealItem>): Result<Unit> =
-        changeDeal(chatId, "Couldn't send your changes. Try again.") { deal, me, messageId, now ->
+        changeDeal(chatId, "Couldn't send your changes. Try again.") { deal, me, messageId, now, _ ->
             // The proposal reuses the message's id, so the suggestion card can find its proposal
             DealRules.propose(deal, me, items, proposalId = messageId, now = now)
         }
 
     override suspend fun acceptProposal(chatId: String): Result<Unit> =
-        changeDeal(chatId, "Couldn't accept the changes. Try again.") { deal, me, _, _ ->
+        changeDeal(chatId, "Couldn't accept the changes. Try again.") { deal, me, _, _, _ ->
             DealRules.accept(deal, me)
         }
 
     override suspend fun declineProposal(chatId: String): Result<Unit> =
-        changeDeal(chatId, "Couldn't update the deal. Try again.") { deal, me, _, _ ->
+        changeDeal(chatId, "Couldn't update the deal. Try again.") { deal, me, _, _, _ ->
             DealRules.decline(deal, me)
         }
 
+    override suspend fun markDealDone(chatId: String): Result<Unit> =
+        changeDeal(chatId, "Couldn't mark the deal as done. Try again.", readListings = true) { deal, me, _, _, listings ->
+            DealRules.markDone(deal, me, listings)
+        }
+
+    override suspend fun cancelDeal(chatId: String): Result<Unit> =
+        changeDeal(chatId, "Couldn't cancel the deal. Try again.") { deal, _, _, _, _ ->
+            DealRules.cancel(deal)
+        }
+
     /**
-     * One deal change as a transaction: read the latest deal, ask [decide] what to do,
-     * then save the new deal and its chat message together, or neither.
+     * One deal change as a transaction: read the latest deal (and its listings when [readListings]),
+     * ask [decide] what to do, then save everything together, or nothing.
      * If the other person changes the deal at the same moment, Firestore runs this again
      * with their version, so a change is never made against an old deal.
      */
     private suspend fun changeDeal(
         chatId: String,
         failMessage: String,
-        decide: (deal: Deal?, me: String, messageId: String, now: Long) -> DealPlan,
+        readListings: Boolean = false,
+        decide: (deal: Deal?, me: String, messageId: String, now: Long, listings: Map<String, Listing>) -> DealPlan,
     ): Result<Unit> = firestoreResult(failMessage) {
         val me = signedInUidOrThrow(auth)
         val chatRef = chats.document(chatId)
         val messageRef = chatRef.collection(MESSAGES).document()
 
         val plan = db.runTransaction { transaction ->
+            // Firestore needs every read in a transaction to come before any write
             val deal = dealFromMap(transaction.get(chatRef).get("deal"))
+            val dealListings = if (readListings && deal != null) {
+                deal.items.mapNotNull { item ->
+                    val snapshot = transaction.get(listingDocs.document(item.listingId))
+                    listingFromMap(snapshot.id, snapshot.data)
+                }.associateBy { it.id }
+            } else {
+                emptyMap()
+            }
             val now = System.currentTimeMillis()
-            val plan = decide(deal, me, messageRef.id, now)
+            val plan = decide(deal, me, messageRef.id, now, dealListings)
 
-            if (plan is DealPlan.Change) {
-                val message = Message(
-                    id = messageRef.id,
-                    chatId = chatId,
-                    senderId = me,
-                    type = plan.messageType,
-                    text = plan.messageText,
-                    proposalId = plan.proposalId,
-                    createdAt = now,
-                )
+            fun saveMessage(type: MessageType, text: String, proposalId: String? = null) {
+                val message = Message(messageRef.id, chatId, me, type, text, proposalId, now)
                 transaction.set(messageRef, message.toMap())
-                transaction.update(
-                    chatRef,
-                    mapOf("deal" to plan.deal.toMap(), "lastMessage" to plan.preview, "updatedAt" to now),
-                )
+            }
+
+            when (plan) {
+                is DealPlan.Change -> {
+                    saveMessage(plan.messageType, plan.messageText, plan.proposalId)
+                    transaction.update(
+                        chatRef,
+                        mapOf("deal" to plan.deal.toMap(), "lastMessage" to plan.preview, "updatedAt" to now),
+                    )
+                }
+                is DealPlan.End -> {
+                    saveMessage(plan.messageType, plan.messageText)
+                    // Deleting the field leaves the chat with no deal, so a new request can start one
+                    transaction.update(
+                        chatRef,
+                        mapOf("deal" to FieldValue.delete(), "lastMessage" to plan.preview, "updatedAt" to now),
+                    )
+                    // soldInChatId lets firestore.rules check that both owners are in this chat
+                    plan.soldListingIds.forEach { id ->
+                        transaction.update(
+                            listingDocs.document(id),
+                            mapOf("status" to ListingStatus.SOLD.name, "soldInChatId" to chatId),
+                        )
+                    }
+                }
+                is DealPlan.NotAllowed -> Unit
             }
             plan
         }.await()
