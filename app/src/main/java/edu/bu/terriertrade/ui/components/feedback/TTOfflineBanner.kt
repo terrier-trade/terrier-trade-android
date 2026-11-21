@@ -18,7 +18,7 @@ import edu.bu.terriertrade.ui.theme.Spacing
 @Composable
 fun TTOfflineBanner(
     modifier: Modifier = Modifier,
-    message: String = "You're offline. Showing saved listings.",
+    message: String = "You're offline. Changes will sync when you reconnect.",
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
