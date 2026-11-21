@@ -3,6 +3,9 @@ package edu.bu.terriertrade.data.deal
 import edu.bu.terriertrade.data.model.Deal
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.DealProposal
+import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.ListingStatus
+import edu.bu.terriertrade.data.model.ListingType
 import edu.bu.terriertrade.data.model.MessageType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -161,5 +164,96 @@ class DealRulesTest {
     @Test
     fun decline_withNothingWaiting_isNotAllowed() {
         assertEquals("There are no changes to decline.", DealRules.decline(deal, me).reason())
+    }
+
+    // Mark as done ----------------------------------------------------------------------------------
+
+    private val tutoring = DealItem("l4", 20)
+
+    private fun listing(
+        id: String,
+        owner: String,
+        type: ListingType = ListingType.ITEM,
+        status: ListingStatus = ListingStatus.ACTIVE,
+    ) = Listing(id = id, ownerId = owner, type = type, title = id, price = 10, status = status)
+
+    // Every listing the deals below use. Tutoring is a service, so it stays listed after a deal.
+    private val dealListings = mapOf(
+        "l3" to listing("l3", sam),
+        "m1" to listing("m1", me),
+        "l4" to listing("l4", sam, ListingType.SERVICE),
+    )
+
+    private fun DealPlan.end(): DealPlan.End {
+        assertTrue("Expected an End but was $this", this is DealPlan.End)
+        return this as DealPlan.End
+    }
+
+    @Test
+    fun markDone_firstTap_waitsForTheOtherPerson() {
+        val change = DealRules.markDone(deal, me, dealListings).change()
+
+        assertEquals(listOf(me), change.deal.doneBy)
+        // Marking done doesn't touch the items
+        assertEquals(listOf(calculator), change.deal.items)
+        assertEquals(MessageType.ACTION, change.messageType)
+        assertEquals("marked the deal as done", change.messageText)
+    }
+
+    @Test
+    fun markDone_secondTap_endsTheDeal_andSellsEverythingButServices() {
+        val samDone = deal.copy(items = listOf(calculator, lamp, tutoring), doneBy = listOf(sam))
+
+        val end = DealRules.markDone(samDone, me, dealListings).end()
+
+        assertEquals(MessageType.REVIEW_PROMPT, end.messageType)
+        // Tutoring can be booked again, so only the calculator and the lamp are sold
+        assertEquals(listOf("l3", "m1"), end.soldListingIds)
+    }
+
+    @Test
+    fun markDone_isBlocked_whileChangesWait() {
+        val waiting = deal.copy(pending = proposal(from = sam, items = listOf(lamp)))
+
+        val reason = DealRules.markDone(waiting, me, dealListings).reason()
+
+        assertEquals("Accept, decline or withdraw the suggested changes first.", reason)
+    }
+
+    @Test
+    fun markDone_isBlocked_byItemsNoLongerAvailable() {
+        val expected = "Take out items that are no longer available first."
+        val removed = dealListings + ("l3" to listing("l3", sam, status = ListingStatus.REMOVED))
+
+        assertEquals(expected, DealRules.markDone(deal, me, removed).reason())
+        // A listing that can't be found at all counts as gone too
+        assertEquals(expected, DealRules.markDone(deal, me, emptyMap()).reason())
+    }
+
+    @Test
+    fun markDone_twice_orWithNoDeal_isBlocked() {
+        val alreadyDone = deal.copy(doneBy = listOf(me))
+
+        assertEquals("You've already marked it as done.", DealRules.markDone(alreadyDone, me, dealListings).reason())
+        assertEquals("There's no deal to finish.", DealRules.markDone(null, me, dealListings).reason())
+    }
+
+    // Cancel ----------------------------------------------------------------------------------------
+
+    @Test
+    fun cancel_endsTheDeal_withoutSellingAnything() {
+        // Even with changes waiting and Sam's done tap saved, cancel just ends it
+        val busy = deal.copy(pending = proposal(from = sam, items = listOf(lamp)), doneBy = listOf(sam))
+
+        val end = DealRules.cancel(busy).end()
+
+        assertEquals(MessageType.ACTION, end.messageType)
+        assertEquals("cancelled the deal", end.messageText)
+        assertTrue(end.soldListingIds.isEmpty())
+    }
+
+    @Test
+    fun cancel_withNoDeal_isBlocked() {
+        assertEquals("There's no deal to cancel.", DealRules.cancel(null).reason())
     }
 }

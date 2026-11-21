@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class ChatViewModel(
@@ -103,6 +104,9 @@ class ChatViewModel(
     val dealSheet: StateFlow<DealSheetState> =
         dealOpen
             .flatMapLatest { open -> if (open) observeDealSheet() else flowOf(DealSheetState()) }
+            // The deal can end while the sheet is open, when the other person cancels or finishes it.
+            // Forget that it was open, so the sheet doesn't pop up by itself when a new deal starts.
+            .onEach { if (!it.isOpen) dealOpen.value = false }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
@@ -149,6 +153,12 @@ class ChatViewModel(
 
     /** Declines their changes, or withdraws mine. */
     fun declineChanges() = runDealAction { chatRepository.declineProposal(chatId) }
+
+    /** Marks the deal as done from my side. The other person's tap finishes it. */
+    fun markDone() = runDealAction { chatRepository.markDealDone(chatId) }
+
+    /** Calls the deal off for both people. The screen asks "Are you sure?" first, so this only runs after a yes. */
+    fun cancelDeal() = runDealAction { chatRepository.cancelDeal(chatId) }
 
     /** What the open sheet shows. Rebuilt when the chat, a listing, the draft or the saving state changes. */
     @OptIn(ExperimentalCoroutinesApi::class)

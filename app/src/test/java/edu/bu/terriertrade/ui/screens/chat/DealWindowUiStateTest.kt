@@ -131,4 +131,56 @@ class DealWindowUiStateTest {
         assertFalse(card.toUi(me, "Sam", 0L, pendingProposalId = "p2").isActive)
         assertFalse(card.toUi(me, "Sam", 0L, pendingProposalId = null).isActive)
     }
+
+    // Mark as done ----------------------------------------------------------------------------------
+
+    @Test
+    fun openDeal_canBeMarkedDone() {
+        val ui = window()
+
+        assertTrue(ui.canMarkDone)
+        assertNull(ui.markDoneBlockedReason)
+        assertFalse(ui.doneByMe)
+        assertFalse(ui.doneByPartner)
+    }
+
+    @Test
+    fun afterSamMarksDone_myTapWouldFinishIt() {
+        val ui = window(deal = deal.copy(doneBy = listOf(sam)))
+
+        assertTrue(ui.doneByPartner)
+        assertFalse(ui.doneByMe)
+        assertTrue(ui.canMarkDone)
+    }
+
+    @Test
+    fun afterIMarkDone_itsOff_withoutAReason() {
+        val ui = window(deal = deal.copy(doneBy = listOf(me)))
+
+        assertTrue(ui.doneByMe)
+        assertFalse(ui.canMarkDone)
+        // The sheet shows "Waiting for Sam" instead of an error
+        assertNull(ui.markDoneBlockedReason)
+    }
+
+    @Test
+    fun removedItem_blocksMarkDone_withTheReason() {
+        val gone = all + ("l3" to calculator.copy(status = ListingStatus.REMOVED))
+
+        val ui = window(listings = gone)
+
+        assertFalse(ui.canMarkDone)
+        assertEquals("Take out items that are no longer available first.", ui.markDoneBlockedReason)
+    }
+
+    @Test
+    fun waitingChanges_dontOfferMarkDone() {
+        val samsChanges = DealProposal("p1", sam, listOf(DealItem("l3", 35)), baseVersion = 1)
+
+        val ui = window(deal = deal.copy(pending = samsChanges))
+
+        assertEquals(DealMode.REVIEW, ui.mode)
+        assertFalse(ui.canMarkDone)
+        assertNull(ui.markDoneBlockedReason)
+    }
 }

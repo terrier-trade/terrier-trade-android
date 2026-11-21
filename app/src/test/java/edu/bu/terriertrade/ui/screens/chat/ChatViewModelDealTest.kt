@@ -5,6 +5,7 @@ import edu.bu.terriertrade.data.fake.FakeAuthRepository
 import edu.bu.terriertrade.data.fake.FakeChatRepository
 import edu.bu.terriertrade.data.fake.FakeListingRepository
 import edu.bu.terriertrade.data.fake.FakeUserRepository
+import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.testing.MainDispatcherRule
@@ -16,13 +17,14 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * The deal sheet in ChatViewModel: which mode it opens in, editing the draft, sending, accepting,
- * showing why a change was refused, and dropping unsent edits when the sheet closes.
+ * marking done, cancelling, showing why a change was refused, and dropping unsent edits when the sheet closes.
  * In the sample data Sam has suggested changes in c_sam, and nothing is waiting in c_nina.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -117,5 +119,56 @@ class ChatViewModelDealTest {
         viewModel.openDeal()
 
         assertEquals(20, viewModel.window().rows.single().price)
+    }
+
+    // Mark as done and cancel -----------------------------------------------------------------------
+
+    @Test
+    fun markDone_savesMyTap_andClosesTheSheet() = runTest {
+        val viewModel = openSheet("c_nina")
+        assertTrue(viewModel.window().canMarkDone)
+
+        viewModel.markDone()
+
+        assertEquals(listOf(SampleData.ME), chats.observeChat("c_nina").first()!!.deal!!.doneBy)
+        assertFalse(viewModel.dealSheet.value.isOpen)
+
+        // Opening it again shows I'm waiting for Nina, and I can't tap it twice
+        viewModel.openDeal()
+        assertTrue(viewModel.window().doneByMe)
+        assertFalse(viewModel.window().canMarkDone)
+    }
+
+    @Test
+    fun markDone_whileSamsChangesWait_showsTheReason_andKeepsTheSheetOpen() = runTest {
+        val viewModel = openSheet("c_sam")
+
+        viewModel.markDone()
+
+        assertEquals("Accept, decline or withdraw the suggested changes first.", viewModel.dealSheet.value.error)
+        assertTrue(viewModel.dealSheet.value.isOpen)
+    }
+
+    @Test
+    fun cancel_removesTheDeal_andClosesTheSheet() = runTest {
+        val viewModel = openSheet("c_sam")
+
+        viewModel.cancelDeal()
+
+        assertNull(chats.observeChat("c_sam").first()!!.deal)
+        assertFalse(viewModel.dealSheet.value.isOpen)
+    }
+
+    @Test
+    fun dealEndingElsewhere_closesTheSheet_andItStaysClosedForTheNextDeal() = runTest {
+        val viewModel = openSheet("c_nina")
+
+        // Same as Nina cancelling from her phone: the deal disappears while my sheet is open
+        chats.cancelDeal("c_nina").getOrThrow()
+        assertFalse(viewModel.dealSheet.value.isOpen)
+
+        // A new request starts a fresh deal in the same chat. The sheet must not pop open by itself.
+        chats.requestListing(SampleData.listings.first { it.id == "l9" }).getOrThrow()
+        assertFalse(viewModel.dealSheet.value.isOpen)
     }
 }
