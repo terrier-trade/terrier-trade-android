@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.automirrored.outlined.Logout
@@ -49,6 +50,7 @@ import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 fun MyProfileRoute(
     onListingClick: (listingId: String) -> Unit,
     modifier: Modifier = Modifier,
+    onEditProfileClick: () -> Unit = {},
     viewModel: MyProfileViewModel = viewModel(factory = MyProfileViewModel.Factory),
 ) {
     var confirmSignOut by rememberSaveable { mutableStateOf(false) }
@@ -62,6 +64,7 @@ fun MyProfileRoute(
         onToggleSaved = viewModel::onToggleSaved,
         onSignOutClick = { confirmSignOut = true },
         onRetry = viewModel::retry,
+        onEditProfileClick = onEditProfileClick,
         modifier = modifier,
     )
 
@@ -103,6 +106,7 @@ fun MyProfileScreen(
     modifier: Modifier = Modifier,
     onSignOutClick: () -> Unit = {},
     onRetry: (() -> Unit)? = null,
+    onEditProfileClick: () -> Unit = {},
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         val header = uiState.header
@@ -128,6 +132,7 @@ fun MyProfileScreen(
                 onRemoveClick = onRemoveClick,
                 onToggleSaved = onToggleSaved,
                 onSignOutClick = onSignOutClick,
+                onEditProfileClick = onEditProfileClick,
             )
         }
     }
@@ -143,6 +148,7 @@ private fun ProfileContent(
     onRemoveClick: (MyListingUi) -> Unit,
     onToggleSaved: (String) -> Unit,
     onSignOutClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
 ) {
     val side = Modifier.padding(horizontal = Spacing.lg)
 
@@ -152,6 +158,15 @@ private fun ProfileContent(
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
         item { TTProfileHeaderCard(header = header, modifier = side) }
+
+        item {
+            TTSecondaryButton(
+                text = "Edit profile",
+                onClick = onEditProfileClick,
+                leadingIcon = Icons.Outlined.Edit,
+                modifier = side.fillMaxWidth(),
+            )
+        }
 
         item {
             TTChipRow(
@@ -280,7 +295,7 @@ private fun MyProfileReviewsPreview() {
                 header = previewHeader,
                 tab = ProfileTab.REVIEWS,
                 reviews = listOf(
-                    ReviewUi("r1", "Maya R.", "MR", 5, listOf("Easy to coordinate and super friendly."), "Easy to coordinate and super friendly.", "Oct 19"),
+                    ReviewUi("r1", "Maya R.", "MR", 5, listOf("On time", "Friendly"), "Easy to coordinate and super friendly.", "Oct 19"),
                 ),
             ),
             onTabSelect = {}, onListingClick = {}, onMarkSold = {}, onRemoveClick = {}, onToggleSaved = {},
