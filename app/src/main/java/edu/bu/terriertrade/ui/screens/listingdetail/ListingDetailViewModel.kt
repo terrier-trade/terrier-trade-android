@@ -51,19 +51,37 @@ class ListingDetailViewModel(
     fun load(listingId: String) {
         if (listingId == loadedId) return
         loadedId = listingId
-        loadJob?.cancel()
         uiState = ListingDetailUiState()
         currentListing = null
+        startLoading(listingId)
+    }
 
+    /** "Try again" on the error state. Keeps whatever is already on screen while it reloads. */
+    fun retry() {
+        val id = loadedId ?: return
+        uiState = uiState.copy(isLoading = uiState.listing == null, errorMessage = null)
+        startLoading(id)
+    }
+
+    private fun startLoading(listingId: String) {
+        loadJob?.cancel()
         loadJob = viewModelScope.launch {
             combine(observeWithOwner(listingId), savedRepository.observeSavedIds()) { (listing, owner), saved ->
                 Triple(listing, owner, saved)
             }
-                .catch { uiState = uiState.copy(listing = null, notFound = true) }
+                .catch { error ->
+                    // A failure (e.g. offline, permission) is not the same as "listing is gone".
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "Couldn't load this listing.",
+                    )
+                }
                 .collect { (listing, owner, saved) ->
                     currentListing = listing?.takeIf { it.status != ListingStatus.REMOVED }
                     val shown = listing?.takeIf { it.status != ListingStatus.REMOVED }?.toListingUi(owner, now())
                     uiState = uiState.copy(
+                        isLoading = false,
+                        errorMessage = null,
                         listing = shown,
                         notFound = shown == null,
                         isFavorite = listingId in saved,

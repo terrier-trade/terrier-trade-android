@@ -3,6 +3,10 @@ package edu.bu.terriertrade.ui.screens.listingdetail
 import edu.bu.terriertrade.ui.model.ListingUi
 
 data class ListingDetailUiState(
+    /** True until the first value (or an error) arrives. */
+    val isLoading: Boolean = true,
+    /** Why loading failed, shown with a "Try again" button. Null when it loaded fine. */
+    val errorMessage: String? = null,
     val listing: ListingUi? = null,
     val isFavorite: Boolean = false,
     val notFound: Boolean = false,

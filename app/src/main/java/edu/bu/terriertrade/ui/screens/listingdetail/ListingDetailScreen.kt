@@ -28,6 +28,7 @@ import edu.bu.terriertrade.ui.components.buttons.TTBackButton
 import edu.bu.terriertrade.ui.components.buttons.TTFavoriteButton
 import edu.bu.terriertrade.ui.components.buttons.TTPrimaryButton
 import edu.bu.terriertrade.ui.components.feedback.TTEmptyState
+import edu.bu.terriertrade.ui.components.feedback.TTErrorState
 import edu.bu.terriertrade.ui.components.feedback.TTErrorText
 import edu.bu.terriertrade.ui.components.feedback.TTLoadingState
 import edu.bu.terriertrade.ui.components.layout.TTBottomActions
@@ -67,10 +68,11 @@ fun ListingDetailRoute(
         onToggleFavorite = viewModel::onToggleFavorite,
         onRequest = viewModel::onRequest,
         onSellerClick = onSellerClick,
+        onRetry = viewModel::retry,
     )
 }
 
-/** Stateless UI: loading, not found, or the listing. */
+/** Stateless UI: loading, error, not found, or the listing. */
 @Composable
 fun ListingDetailScreen(
     uiState: ListingDetailUiState,
@@ -79,6 +81,7 @@ fun ListingDetailScreen(
     onRequest: () -> Unit,
     modifier: Modifier = Modifier,
     onSellerClick: ((String) -> Unit)? = null,
+    onRetry: (() -> Unit)? = null,
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -86,6 +89,18 @@ fun ListingDetailScreen(
     ) {
         val listing = uiState.listing
         when {
+            uiState.isLoading -> TTLoadingState(message = "Loading listing…")
+            // Only take over the screen if there's nothing to show. If the listing already
+            // loaded and the live stream drops later, keep showing it (the offline banner explains).
+            uiState.errorMessage != null && listing == null -> Column(modifier = Modifier.fillMaxSize()) {
+                TTBackButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .windowInsetsPadding(WindowInsets.statusBars)
+                        .padding(Spacing.lg),
+                )
+                TTErrorState(message = uiState.errorMessage, onRetry = onRetry)
+            }
             uiState.notFound -> Column(modifier = Modifier.fillMaxSize()) {
                 TTBackButton(
                     onClick = onBack,
@@ -200,7 +215,7 @@ private fun ListingDetailContent(
 private fun ListingDetailScreenPreview() {
     TerrierTradeTheme {
         ListingDetailScreen(
-            uiState = ListingDetailUiState(listing = PreviewData.listings.first()),
+            uiState = ListingDetailUiState(isLoading = false, listing = PreviewData.listings.first()),
             onBack = {}, onToggleFavorite = {}, onRequest = {},
         )
     }
@@ -211,7 +226,7 @@ private fun ListingDetailScreenPreview() {
 private fun ListingDetailRequestedPreview() {
     TerrierTradeTheme {
         ListingDetailScreen(
-            uiState = ListingDetailUiState(listing = PreviewData.listings.first(), isFavorite = true, isRequesting = true),
+            uiState = ListingDetailUiState(isLoading = false, listing = PreviewData.listings.first(), isFavorite = true, isRequesting = true),
             onBack = {}, onToggleFavorite = {}, onRequest = {},
         )
     }
@@ -222,8 +237,19 @@ private fun ListingDetailRequestedPreview() {
 private fun ListingDetailNotFoundPreview() {
     TerrierTradeTheme {
         ListingDetailScreen(
-            uiState = ListingDetailUiState(notFound = true),
+            uiState = ListingDetailUiState(isLoading = false, notFound = true),
             onBack = {}, onToggleFavorite = {}, onRequest = {},
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun ListingDetailErrorPreview() {
+    TerrierTradeTheme {
+        ListingDetailScreen(
+            uiState = ListingDetailUiState(isLoading = false, errorMessage = "Couldn't load this listing."),
+            onBack = {}, onToggleFavorite = {}, onRequest = {}, onRetry = {},
         )
     }
 }
