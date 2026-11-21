@@ -70,6 +70,17 @@ data class DealWindowUi(
     val addable: List<AddableListingUi>,
     /** EDIT mode only: true when the draft is a change DealRules would accept. */
     val canSend: Boolean,
+    /** True once I've tapped Mark as done. Accepting new changes clears it. */
+    val doneByMe: Boolean = false,
+    /** True once the other person has tapped Mark as done, so my tap would finish the deal. */
+    val doneByPartner: Boolean = false,
+    /** EDIT mode only: true when DealRules would let me mark the deal as done right now. */
+    val canMarkDone: Boolean = false,
+    /**
+     * Why Mark as done is off, like "Take out items that are no longer available first."
+     * Null when it's on, or when I've already tapped it (the sheet says "Waiting for Sam" instead).
+     */
+    val markDoneBlockedReason: String? = null,
 )
 
 /**
@@ -139,6 +150,11 @@ fun buildDealWindow(
     val canSend = mode == DealMode.EDIT && draft != null &&
             DealRules.propose(deal, myId, draft, proposalId = "", now = 0L) is DealPlan.Change
 
+    // Same idea as canSend: ask the real rules, so the button matches what the repository allows.
+    // Only offered while nothing is waiting, since waiting changes have to be answered first.
+    val markDone = if (mode == DealMode.EDIT) DealRules.markDone(deal, myId, listings) else null
+    val doneByMe = myId in deal.doneBy
+
     val (title, subtitle) = when (mode) {
         DealMode.EDIT -> "Change the deal" to
                 "Add or remove items and set prices. $partnerFirstName has to accept before anything changes."
@@ -158,6 +174,11 @@ fun buildDealWindow(
         currentTotalLabel = if (changed) totalLabel(dealTotal(deal.items, listings, myId), partnerFirstName) else null,
         addable = addable,
         canSend = canSend,
+        doneByMe = doneByMe,
+        doneByPartner = deal.doneBy.any { it != myId },
+        canMarkDone = markDone != null && markDone !is DealPlan.NotAllowed,
+        // Once I've tapped it, "already marked" isn't a problem worth showing
+        markDoneBlockedReason = (markDone as? DealPlan.NotAllowed)?.reason?.takeUnless { doneByMe },
     )
 }
 
