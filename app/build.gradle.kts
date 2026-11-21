@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -68,8 +69,11 @@ dependencies {
     // Network
     implementation(libs.retrofit)
 
-    // Local storage (Room is added with the first local cache)
+    // Local storage: DataStore for small settings, Room for the offline listings cache
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // Camera and barcode scanning
     implementation(libs.androidx.camera.camera2)
