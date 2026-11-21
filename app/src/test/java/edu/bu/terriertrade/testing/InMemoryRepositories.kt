@@ -26,10 +26,17 @@ class InMemoryListingRepository(initial: List<Listing> = emptyList()) : ListingR
         listings.map { all -> all.filter { it.status == ListingStatus.ACTIVE }.sortedByDescending { it.createdAt } }
 
     override fun observeListing(listingId: String): Flow<Listing?> =
-        listings.map { all -> all.find { it.id == listingId } }
+        listings.map { all -> failIfAsked(); all.find { it.id == listingId } }
 
     override fun observeListingsByOwner(ownerId: String): Flow<List<Listing>> =
-        listings.map { all -> all.filter { it.ownerId == ownerId } }
+        listings.map { all -> failIfAsked(); all.filter { it.ownerId == ownerId } }
+
+    /** Set this to make the single-listing and by-owner streams fail, like Firestore offline. */
+    var observeError: Throwable? = null
+
+    private fun failIfAsked() {
+        observeError?.let { throw it }
+    }
 
     override suspend fun createListing(listing: Listing): Result<String> {
         listings.update { it + listing }

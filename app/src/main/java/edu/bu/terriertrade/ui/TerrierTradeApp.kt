@@ -60,12 +60,14 @@ fun TerrierTradeApp() {
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding),
         ) {
-            if (!isOnline) TTOfflineBanner()
             TTNavHost(
                 navController = navController,
                 startDestination = rememberStartRoute(),
                 modifier = Modifier.weight(1f),
             )
+            // Sits under the screen, just above the bottom bar. It can't go at the top:
+            // Browse slides up behind the app header (joinAppHeader) and would cover it.
+            if (!isOnline) TTOfflineBanner()
         }
     }
 }

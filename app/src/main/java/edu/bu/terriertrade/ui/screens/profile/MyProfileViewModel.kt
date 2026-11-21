@@ -23,6 +23,7 @@ import edu.bu.terriertrade.ui.model.toListingUi
 import edu.bu.terriertrade.ui.model.toProfileHeaderUi
 import edu.bu.terriertrade.ui.model.toReviewUi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -48,8 +49,21 @@ class MyProfileViewModel(
     var uiState by mutableStateOf(MyProfileUiState())
         private set
 
+    private var loadJob: Job? = null
+
     init {
-        viewModelScope.launch {
+        load()
+    }
+
+    /** Starts (or restarts, after an error) listening to the repositories. */
+    fun retry() {
+        uiState = uiState.copy(isLoading = uiState.header == null, errorMessage = null)
+        load()
+    }
+
+    private fun load() {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             authRepository.currentUserId
                 .flatMapLatest { uid -> if (uid == null) flowOf(null) else observeProfile(uid) }
                 .catch { error ->

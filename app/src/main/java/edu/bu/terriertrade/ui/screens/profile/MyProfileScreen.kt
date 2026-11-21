@@ -61,6 +61,7 @@ fun MyProfileRoute(
         onRemoveClick = viewModel::onRemoveClick,
         onToggleSaved = viewModel::onToggleSaved,
         onSignOutClick = { confirmSignOut = true },
+        onRetry = viewModel::retry,
         modifier = modifier,
     )
 
@@ -101,6 +102,7 @@ fun MyProfileScreen(
     onToggleSaved: (String) -> Unit,
     modifier: Modifier = Modifier,
     onSignOutClick: () -> Unit = {},
+    onRetry: (() -> Unit)? = null,
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         val header = uiState.header
@@ -110,7 +112,7 @@ fun MyProfileScreen(
                 title = "You're signed out",
                 message = "Sign in with your BU email to see your profile.",
             )
-            uiState.errorMessage != null && header == null -> TTErrorState(message = uiState.errorMessage)
+            uiState.errorMessage != null && header == null -> TTErrorState(message = uiState.errorMessage, onRetry = onRetry)
             header == null -> TTEmptyState(
                 title = "Profile not found",
                 message = "Try signing out and back in.",
@@ -278,7 +280,7 @@ private fun MyProfileReviewsPreview() {
                 header = previewHeader,
                 tab = ProfileTab.REVIEWS,
                 reviews = listOf(
-                    ReviewUi("r1", "Maya R.", "MR", 5, listOf("On time", "Friendly"), "Easy to coordinate and super friendly.", "Oct 19"),
+                    ReviewUi("r1", "Maya R.", "MR", 5, listOf("Easy to coordinate and super friendly."), "Easy to coordinate and super friendly.", "Oct 19"),
                 ),
             ),
             onTabSelect = {}, onListingClick = {}, onMarkSold = {}, onRemoveClick = {}, onToggleSaved = {},

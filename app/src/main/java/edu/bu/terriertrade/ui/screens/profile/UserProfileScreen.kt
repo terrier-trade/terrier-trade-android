@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.bu.terriertrade.ui.components.buttons.TTBackButton
 import edu.bu.terriertrade.ui.components.buttons.TTPrimaryButton
 import edu.bu.terriertrade.ui.components.feedback.TTEmptyState
+import edu.bu.terriertrade.ui.components.feedback.TTErrorState
 import edu.bu.terriertrade.ui.components.feedback.TTErrorText
 import edu.bu.terriertrade.ui.components.feedback.TTLoadingState
 import edu.bu.terriertrade.ui.components.layout.TTBottomActions
@@ -62,6 +63,7 @@ fun UserProfileRoute(
         onListingClick = onListingClick,
         onToggleFavorite = viewModel::onToggleFavorite,
         onOpenChat = viewModel::onOpenChat,
+        onRetry = viewModel::retry,
     )
 }
 
@@ -74,6 +76,7 @@ fun UserProfileScreen(
     onToggleFavorite: (String) -> Unit,
     onOpenChat: () -> Unit,
     modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null,
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -95,6 +98,10 @@ fun UserProfileScreen(
             val header = uiState.header
             when {
                 uiState.isLoading -> TTLoadingState()
+                uiState.errorMessage != null && header == null -> TTErrorState(
+                    message = uiState.errorMessage,
+                    onRetry = onRetry,
+                )
                 uiState.notFound || header == null -> TTEmptyState(
                     title = "Profile not found",
                     message = "This student may have left Terrier Trade.",

@@ -7,6 +7,8 @@ import edu.bu.terriertrade.ui.model.ReviewUi
 /** Everything another student's profile draws. */
 data class UserProfileUiState(
     val isLoading: Boolean = true,
+    /** Why loading failed, shown with a "Try again" button. Null when it loaded fine. */
+    val errorMessage: String? = null,
     val notFound: Boolean = false,
     val header: ProfileHeaderUi? = null,
     /** Their active listings. */

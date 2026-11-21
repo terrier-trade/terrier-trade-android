@@ -51,9 +51,19 @@ class UserProfileViewModel(
     fun load(userId: String) {
         if (userId == loadedId) return
         loadedId = userId
-        loadJob?.cancel()
         uiState = UserProfileUiState(isMe = authRepository.currentUserId.value == userId)
+        startLoading(userId)
+    }
 
+    /** "Try again" on the error state. Keeps whatever is already on screen while it reloads. */
+    fun retry() {
+        val id = loadedId ?: return
+        uiState = uiState.copy(isLoading = uiState.header == null, errorMessage = null)
+        startLoading(id)
+    }
+
+    private fun startLoading(userId: String) {
+        loadJob?.cancel()
         val reviews = reviewRepository.observeReviewsFor(userId).flatMapLatest { list ->
             userRepository.observeUsers(list.map { it.fromUserId }).map { authors ->
                 list.map { it.toReviewUi(authors[it.fromUserId], now()) }
@@ -70,6 +80,7 @@ class UserProfileViewModel(
                 val time = now()
                 uiState.copy(
                     isLoading = false,
+                    errorMessage = null,
                     notFound = user == null,
                     header = user?.toProfileHeaderUi(),
                     listings = listings
@@ -79,7 +90,13 @@ class UserProfileViewModel(
                     favoriteIds = saved,
                 )
             }
-                .catch { uiState = uiState.copy(isLoading = false, notFound = true) }
+                .catch { error ->
+                    // A failure (e.g. offline) is not the same as "this student doesn't exist".
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "Couldn't load this profile.",
+                    )
+                }
                 .collect { uiState = it }
         }
     }
