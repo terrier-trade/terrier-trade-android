@@ -8,6 +8,8 @@ import edu.bu.terriertrade.data.firebase.FirestoreListingRepository
 import edu.bu.terriertrade.data.firebase.FirestoreReviewRepository
 import edu.bu.terriertrade.data.firebase.FirestoreSavedListingsRepository
 import edu.bu.terriertrade.data.firebase.FirestoreUserRepository
+import edu.bu.terriertrade.data.local.CachedListingRepository
+import edu.bu.terriertrade.data.local.TerrierTradeDatabase
 import edu.bu.terriertrade.data.network.NetworkMonitor
 import edu.bu.terriertrade.data.openlibrary.OpenLibraryBookLookup
 import edu.bu.terriertrade.data.repository.AuthRepository
@@ -49,7 +51,14 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     override val userRepository: UserRepository = firestoreUsers
 
-    override val listingRepository: ListingRepository = FirestoreListingRepository()
+    // The phone's Room database. Built once; it caches data that also lives in Firestore.
+    private val database = TerrierTradeDatabase.build(context)
+
+    // Listings are read from Room first and kept fresh from Firestore, so Browse works offline.
+    override val listingRepository: ListingRepository = CachedListingRepository(
+        remote = FirestoreListingRepository(),
+        dao = database.listingDao(),
+    )
 
     override val savedListingsRepository: SavedListingsRepository = FirestoreSavedListingsRepository()
 
