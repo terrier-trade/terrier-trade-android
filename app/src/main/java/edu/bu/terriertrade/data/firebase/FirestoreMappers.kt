@@ -120,6 +120,7 @@ internal fun Review.toMap(): Map<String, Any?> = mapOf(
     "tags" to tags.map { it.name },
     "text" to text.trim(),
     "createdAt" to createdAt,
+    "promptId" to promptId,
 )
 
 internal fun reviewFromMap(id: String, data: Map<String, Any?>?): Review? {
@@ -135,6 +136,8 @@ internal fun reviewFromMap(id: String, data: Map<String, Any?>?): Review? {
         tags = (data["tags"] as? List<*>).orEmpty().mapNotNull { name -> enumOrNull<ReviewTag>(name as? String) },
         text = data.string("text"),
         createdAt = data.long("createdAt") ?: 0L,
+        // Older reviews were saved before this field existed, so they read as ""
+        promptId = data.string("promptId"),
     )
 }
 

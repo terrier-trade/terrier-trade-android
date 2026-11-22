@@ -7,7 +7,10 @@ enum class ReviewTag(val label: String) {
     FAIR_PRICE("Fair price"),
 }
 
-/** Left after a finished deal. Only people who traded in [chatId] can review each other. */
+/**
+ * Left after a finished deal. Only people who traded in [chatId] can review each other.
+ * [promptId] is the chat's "Deal done" message for that deal, so each person reviews each deal once.
+ */
 data class Review(
     val id: String,
     val fromUserId: String,
@@ -17,4 +20,5 @@ data class Review(
     val tags: List<ReviewTag> = emptyList(),
     val text: String = "",
     val createdAt: Long = 0L,
+    val promptId: String = "",
 )
