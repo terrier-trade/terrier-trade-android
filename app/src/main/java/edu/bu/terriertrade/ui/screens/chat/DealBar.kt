@@ -87,6 +87,9 @@ private fun StatusPill(status: DealStatus) {
         DealStatus.WAITING -> Triple(
             "Waiting", TTTheme.colors.warningContainer, TTTheme.colors.onWarningContainer,
         )
+        DealStatus.CONFIRM_DONE -> Triple(
+            "Confirm", MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.onPrimary,
+        )
         DealStatus.OPEN -> Triple(
             "Open", TTTheme.colors.successContainer, TTTheme.colors.onSuccessContainer,
         )
@@ -107,5 +110,6 @@ private fun DealBarPreview() {
         DealBar(DealBarUi("1 item", "You pay \$40", DealStatus.REVIEW_CHANGES), onClick = {})
         DealBar(DealBarUi("2 items", "Sam pays you \$10", DealStatus.WAITING), onClick = {})
         DealBar(DealBarUi("1 item", "No money", DealStatus.OPEN), onClick = {})
+        DealBar(DealBarUi("2 items", "You pay \$50", DealStatus.CONFIRM_DONE), onClick = {})
     }
 }

@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
@@ -114,7 +115,11 @@ class FakeSavedListingsRepository : SavedListingsRepository {
     }
 }
 
-class FakeChatRepository(private val auth: AuthRepository) : ChatRepository {
+class FakeChatRepository(
+    private val auth: AuthRepository,
+    // Finishing a deal reads its listings and marks them sold, like the Firestore version does
+    private val listingRepository: ListingRepository = FakeListingRepository(auth),
+) : ChatRepository {
     private val chats = MutableStateFlow(SampleData.chats)
     private val messages = MutableStateFlow(SampleData.messages)
     private var nextId = 1000
@@ -188,39 +193,63 @@ class FakeChatRepository(private val auth: AuthRepository) : ChatRepository {
     }
 
     override suspend fun proposeDeal(chatId: String, items: List<DealItem>): Result<Unit> =
-        changeDeal(chatId) { deal, me, messageId, now ->
+        changeDeal(chatId) { deal, me, messageId, now, _ ->
             DealRules.propose(deal, me, items, proposalId = messageId, now = now)
         }
 
     override suspend fun acceptProposal(chatId: String): Result<Unit> =
-        changeDeal(chatId) { deal, me, _, _ -> DealRules.accept(deal, me) }
+        changeDeal(chatId) { deal, me, _, _, _ -> DealRules.accept(deal, me) }
 
     override suspend fun declineProposal(chatId: String): Result<Unit> =
-        changeDeal(chatId) { deal, me, _, _ -> DealRules.decline(deal, me) }
+        changeDeal(chatId) { deal, me, _, _, _ -> DealRules.decline(deal, me) }
 
-    /** Same steps as the Firestore version, without the transaction: decide, then save the deal and message. */
-    private fun changeDeal(
+    override suspend fun markDealDone(chatId: String): Result<Unit> =
+        changeDeal(chatId, readListings = true) { deal, me, _, _, listings -> DealRules.markDone(deal, me, listings) }
+
+    override suspend fun cancelDeal(chatId: String): Result<Unit> =
+        changeDeal(chatId) { deal, _, _, _, _ -> DealRules.cancel(deal) }
+
+    /** Same steps as the Firestore version, without the transaction: read, decide, then save. */
+    private suspend fun changeDeal(
         chatId: String,
-        decide: (deal: Deal?, me: String, messageId: String, now: Long) -> DealPlan,
+        readListings: Boolean = false,
+        decide: (deal: Deal?, me: String, messageId: String, now: Long, listings: Map<String, Listing>) -> DealPlan,
     ): Result<Unit> {
         val me = auth.currentUserId.value ?: return Result.failure(notSignedIn())
         val chat = chats.value.find { it.id == chatId } ?: return Result.failure(DataError("This chat isn't available."))
+        val dealListings = if (readListings) listingsInDeal(chat.deal) else emptyMap()
         val messageId = "m${nextId++}"
         val now = System.currentTimeMillis()
 
-        return when (val plan = decide(chat.deal, me, messageId, now)) {
+        return when (val plan = decide(chat.deal, me, messageId, now, dealListings)) {
             is DealPlan.NotAllowed -> Result.failure(DataError(plan.reason))
             is DealPlan.Change -> {
                 messages.update {
                     it + Message(messageId, chatId, me, plan.messageType, plan.messageText, plan.proposalId, now)
                 }
-                chats.update { all ->
-                    all.map { if (it.id == chatId) it.copy(deal = plan.deal, lastMessage = plan.preview, updatedAt = now) else it }
+                updateChat(chatId) { it.copy(deal = plan.deal, lastMessage = plan.preview, updatedAt = now) }
+                Result.success(Unit)
+            }
+            is DealPlan.End -> {
+                messages.update {
+                    it + Message(messageId, chatId, me, plan.messageType, plan.messageText, createdAt = now)
                 }
+                updateChat(chatId) { it.copy(deal = null, lastMessage = plan.preview, updatedAt = now) }
+                plan.soldListingIds.forEach { listingRepository.setStatus(it, ListingStatus.SOLD) }
                 Result.success(Unit)
             }
         }
     }
+
+    private fun updateChat(chatId: String, change: (Chat) -> Chat) {
+        chats.update { all -> all.map { if (it.id == chatId) change(it) else it } }
+    }
+
+    /** The deal's listings by id, removed ones included, like reading each document in Firestore. */
+    private suspend fun listingsInDeal(deal: Deal?): Map<String, Listing> =
+        deal?.items.orEmpty()
+            .mapNotNull { listingRepository.observeListing(it.listingId).first() }
+            .associateBy { it.id }
 }
 
 class FakeReviewRepository : ReviewRepository {

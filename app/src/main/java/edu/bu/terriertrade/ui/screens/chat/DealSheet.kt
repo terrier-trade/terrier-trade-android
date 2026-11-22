@@ -24,6 +24,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -34,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -75,6 +79,8 @@ data class DealSheetActions(
     val onDiscard: () -> Unit = {},
     val onAccept: () -> Unit = {},
     val onDecline: () -> Unit = {},
+    val onMarkDone: () -> Unit = {},
+    val onCancelDeal: () -> Unit = {},
 )
 
 private val SheetShape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
@@ -83,6 +89,7 @@ private val SheetShape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
  * The deal window as a bottom sheet, laid out like the prototype: the deal split into
  * You get and You give with the money worked out underneath. Change deal switches to ticking
  * listings and setting prices. The other person's changes show at the top with Accept and Decline.
+ * When nothing is waiting, Mark as done finishes the deal once both people have tapped it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,6 +127,8 @@ internal fun DealSheetContent(
 ) {
     // Viewing the deal, or ticking items after Change deal. Their waiting changes always come first.
     var editing by rememberSaveable { mutableStateOf(startEditing) }
+    // The "Cancel this deal?" dialog. Only the final yes reaches the ViewModel.
+    var confirmCancel by rememberSaveable { mutableStateOf(false) }
     val isEditing = editing && window.mode == DealMode.EDIT
     val viewingOpenDeal = window.mode == DealMode.EDIT && !isEditing
 
@@ -143,7 +152,7 @@ internal fun DealSheetContent(
                 when (window.mode) {
                     DealMode.REVIEW -> ChangesCard(window = window, isSaving = isSaving, actions = actions)
                     DealMode.WAITING -> WaitingNote(window = window)
-                    DealMode.EDIT -> Unit
+                    DealMode.EDIT -> if (window.doneByMe || window.doneByPartner) DoneNote(window)
                 }
                 DealView(window = window)
             }
@@ -185,15 +194,47 @@ internal fun DealSheetContent(
                     modifier = Modifier.fillMaxWidth(),
                     loading = isSaving,
                 )
-                window.mode == DealMode.EDIT -> TTSecondaryButton(
-                    text = "Change deal",
-                    onClick = { editing = true },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                window.mode == DealMode.EDIT -> {
+                    // Why Mark as done is off, like an item that was taken down
+                    window.markDoneBlockedReason?.let { reason ->
+                        Text(reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        TTSecondaryButton(
+                            text = "Change deal",
+                            onClick = { editing = true },
+                            modifier = Modifier.weight(1f),
+                            enabled = !isSaving,
+                        )
+                        TTPrimaryButton(
+                            text = markDoneLabel(window),
+                            onClick = actions.onMarkDone,
+                            modifier = Modifier.weight(1f),
+                            enabled = window.canMarkDone,
+                            loading = isSaving,
+                        )
+                    }
+                }
                 // REVIEW: Accept and Decline are in the changes card at the top
                 else -> Unit
             }
+
+            // Calling the deal off is always possible, except halfway through editing it
+            if (!isEditing) {
+                CancelDealButton(enabled = !isSaving, onClick = { confirmCancel = true })
+            }
         }
+    }
+
+    if (confirmCancel) {
+        CancelDealDialog(
+            partnerFirstName = window.partnerFirstName,
+            onConfirm = {
+                confirmCancel = false
+                actions.onCancelDeal()
+            },
+            onDismiss = { confirmCancel = false },
+        )
     }
 }
 
@@ -412,6 +453,70 @@ private fun WaitingNote(window: DealWindowUi) {
     }
 }
 
+// Finishing and cancelling ------------------------------------------------------------------------
+
+/** What the Mark as done button says, so each person can tell whose turn it is. */
+private fun markDoneLabel(window: DealWindowUi): String = when {
+    window.doneByMe -> "Waiting for ${window.partnerFirstName}"
+    window.doneByPartner -> "Confirm done"
+    else -> "Mark as done"
+}
+
+/**
+ * Shown above the deal once someone has tapped Mark as done.
+ * Green when it's my turn to confirm, grey when I'm the one waiting.
+ */
+@Composable
+private fun DoneNote(window: DealWindowUi) {
+    val myTurn = window.doneByPartner
+    val container = if (myTurn) TTTheme.colors.successContainer else MaterialTheme.colorScheme.surfaceVariant
+    val content = if (myTurn) TTTheme.colors.onSuccessContainer else MaterialTheme.colorScheme.onSurface
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(container, RoundedCornerShape(14.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(Icons.Outlined.TaskAlt, contentDescription = null, tint = content, modifier = Modifier.size(20.dp))
+        Text(
+            text = if (myTurn) {
+                "${window.partnerFirstName} marked the deal as done. Tap Confirm done once you've both swapped everything."
+            } else {
+                "You marked the deal as done. Waiting for ${window.partnerFirstName} to confirm."
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = content,
+        )
+    }
+}
+
+/** A quiet red text button, so calling the deal off never competes with the main action. */
+@Composable
+private fun CancelDealButton(enabled: Boolean, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+    ) {
+        Text("Cancel deal", style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@Composable
+private fun CancelDealDialog(partnerFirstName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Cancel this deal?") },
+        text = { Text("The deal closes for you and $partnerFirstName, and nothing is marked sold. Your chat stays.") },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Cancel deal") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Keep deal") } },
+    )
+}
+
 /** One line per change: green for what's added, red for what's removed, and price changes. */
 @Composable
 private fun ChangeLines(rows: List<DealRowUi>) {
@@ -604,14 +709,14 @@ private fun NewTotalBox(totalLabel: String, currentTotalLabel: String?) {
 // Previews ----------------------------------------------------------------------------------------
 
 /** The sample data's deal in [chatId], as the signed-in sample student sees it. */
-private fun previewWindow(chatId: String): DealWindowUi {
+private fun previewWindow(chatId: String, doneBy: List<String> = emptyList()): DealWindowUi {
     val me = SampleData.ME
     val chat = SampleData.chats.first { it.id == chatId }
     val partnerId = chat.partnerId(me)
     return buildDealWindow(
         myId = me,
         partnerFirstName = SampleData.user(partnerId)?.firstName ?: "them",
-        deal = chat.deal!!,
+        deal = chat.deal!!.copy(doneBy = doneBy),
         draft = null,
         listings = SampleData.listings.associateBy { it.id },
         myListings = SampleData.listings.filter { it.ownerId == me },
@@ -646,6 +751,21 @@ private fun DealSheetEditPreview() {
                 error = null,
                 actions = DealSheetActions(),
                 startEditing = true,
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun DealSheetConfirmDonePreview() {
+    TerrierTradeTheme {
+        Surface {
+            DealSheetContent(
+                previewWindow("c_nina", doneBy = listOf("nina")),
+                isSaving = false,
+                error = null,
+                actions = DealSheetActions(),
             )
         }
     }

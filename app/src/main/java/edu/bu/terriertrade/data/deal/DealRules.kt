@@ -3,6 +3,7 @@ package edu.bu.terriertrade.data.deal
 import edu.bu.terriertrade.data.model.Deal
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.DealProposal
+import edu.bu.terriertrade.data.model.Listing
 import edu.bu.terriertrade.data.model.MessageType
 
 /** What a change to the deal should do, decided before anything is saved. */
@@ -21,11 +22,23 @@ sealed interface DealPlan {
         val proposalId: String? = null,
     ) : DealPlan
 
+    /**
+     * The deal is over: remove it from the chat and post one message, together in one transaction.
+     * [soldListingIds] are marked sold at the same time. Services aren't in it, since they can be booked again.
+     */
+    data class End(
+        val messageType: MessageType,
+        val messageText: String,
+        val preview: String,
+        val soldListingIds: List<String> = emptyList(),
+    ) : DealPlan
+
     data class NotAllowed(val reason: String) : DealPlan
 }
 
 /**
- * The rules for suggesting, accepting, declining and withdrawing changes to a deal.
+ * The rules for suggesting, accepting, declining and withdrawing changes to a deal,
+ * and for finishing or cancelling it.
  * Only one proposal waits at a time. Accepting it replaces the deal's items and bumps the version,
  * so a proposal made from an older version can be spotted and expired.
  * Plain Kotlin with no Firebase, so every case is covered by fast unit tests.
@@ -101,6 +114,54 @@ object DealRules {
             preview = if (withdrawing) "Changes withdrawn" else "Changes declined",
         )
     }
+
+    /**
+     * Marks the deal as done from my side. Both people have to, so one person can't finish it alone.
+     * The first tap is remembered in doneBy. The second ends the deal, sells the listings
+     * and posts the prompt to review each other.
+     * [listings] must hold every listing in the deal, so items taken down in the meantime are caught.
+     */
+    fun markDone(deal: Deal?, myId: String, listings: Map<String, Listing>): DealPlan {
+        if (deal == null) return DealPlan.NotAllowed("There's no deal to finish.")
+
+        val problem = when {
+            deal.pending != null -> "Accept, decline or withdraw the suggested changes first."
+            deal.items.isEmpty() -> "Add an item before finishing the deal."
+            deal.items.any { listings[it.listingId]?.isActive != true } ->
+                "Take out items that are no longer available first."
+            myId in deal.doneBy -> "You've already marked it as done."
+            else -> null
+        }
+        if (problem != null) return DealPlan.NotAllowed(problem)
+
+        // Nobody else has tapped it yet: remember my tap and wait for theirs
+        if (deal.doneBy.isEmpty()) {
+            return DealPlan.Change(
+                deal = deal.copy(doneBy = listOf(myId)),
+                messageType = MessageType.ACTION,
+                messageText = "marked the deal as done",
+                preview = "Marked as done",
+            )
+        }
+
+        return DealPlan.End(
+            messageType = MessageType.REVIEW_PROMPT,
+            messageText = "Deal done",
+            preview = "Deal done",
+            soldListingIds = deal.items
+                .mapNotNull { listings[it.listingId] }
+                .filterNot { it.staysListedAfterDeal }
+                .map { it.id },
+        )
+    }
+
+    /** Either person can call the deal off at any time. Nothing is sold, and waiting changes go with it. */
+    fun cancel(deal: Deal?): DealPlan =
+        if (deal == null) {
+            DealPlan.NotAllowed("There's no deal to cancel.")
+        } else {
+            DealPlan.End(MessageType.ACTION, messageText = "cancelled the deal", preview = "Deal cancelled")
+        }
 
     /** Same listings at the same prices, in any order. */
     private fun sameItems(a: List<DealItem>, b: List<DealItem>): Boolean =

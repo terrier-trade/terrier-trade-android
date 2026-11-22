@@ -39,4 +39,13 @@ interface ChatRepository {
 
     /** Declines the other person's suggested changes, or withdraws mine. See DealRules.decline. */
     suspend fun declineProposal(chatId: String): Result<Unit>
+
+    /**
+     * Marks the deal as done from my side. Once both people have, the deal ends, its listings
+     * are marked sold and the chat asks both of them to review each other. See DealRules.markDone.
+     */
+    suspend fun markDealDone(chatId: String): Result<Unit>
+
+    /** Calls the deal off for both people. Nothing is sold. See DealRules.cancel. */
+    suspend fun cancelDeal(chatId: String): Result<Unit>
 }

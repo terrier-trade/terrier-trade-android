@@ -22,7 +22,18 @@ data class MessageUi(
 )
 
 /** What the deal bar shows on its right side. */
-enum class DealStatus { REVIEW_CHANGES, WAITING, OPEN }
+enum class DealStatus {
+    /** They suggested changes. */
+    REVIEW_CHANGES,
+
+    /** My changes are waiting, or I've marked it done and they haven't yet. */
+    WAITING,
+
+    /** They marked it done. My tap finishes the deal. */
+    CONFIRM_DONE,
+
+    OPEN,
+}
 
 data class DealBarUi(
     val itemCountLabel: String, // "1 item"
@@ -103,9 +114,13 @@ fun buildChatContent(
             itemCountLabel = if (count == 1) "1 item" else "$count items",
             totalLabel = totalLabel(dealTotal(deal.items, dealListings, myId), firstName),
             status = when {
-                pending == null -> DealStatus.OPEN
-                pending.fromUserId == myId -> DealStatus.WAITING
-                else -> DealStatus.REVIEW_CHANGES
+                pending != null && pending.fromUserId == myId -> DealStatus.WAITING
+                pending != null -> DealStatus.REVIEW_CHANGES
+                // I marked it done, so I'm waiting for them to confirm
+                myId in deal.doneBy -> DealStatus.WAITING
+                // They marked it done, so it's my turn
+                deal.doneBy.isNotEmpty()  -> DealStatus.CONFIRM_DONE
+                else -> DealStatus.OPEN
             },
         )
     }
