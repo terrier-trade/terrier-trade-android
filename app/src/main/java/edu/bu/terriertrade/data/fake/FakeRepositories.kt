@@ -22,6 +22,7 @@ import edu.bu.terriertrade.data.deal.RequestRules
 import edu.bu.terriertrade.data.model.Deal
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.repository.DataError
+import edu.bu.terriertrade.data.review.ReviewRules
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -252,14 +253,33 @@ class FakeChatRepository(
             .associateBy { it.id }
 }
 
-class FakeReviewRepository : ReviewRepository {
+/**
+ * Reviews in memory, following the same rules as Firestore: one review per person per finished deal.
+ * It doesn't check that the deal really finished, because chats live in FakeChatRepository.
+ */
+class FakeReviewRepository(
+    private val auth: AuthRepository = FakeAuthRepository(),
+) : ReviewRepository {
     private val reviews = MutableStateFlow(SampleData.reviews)
 
     override fun observeReviewsFor(userId: String): Flow<List<Review>> =
         reviews.map { all -> all.filter { it.toUserId == userId }.sortedByDescending { it.createdAt } }
 
+    override fun observeMyReviewedPrompts(chatId: String): Flow<Set<String>> =
+        combine(auth.currentUserId, reviews) { me, all ->
+            all.filter { it.chatId == chatId && it.fromUserId == me && it.promptId.isNotBlank() }
+                .map { it.promptId }
+                .toSet()
+        }
+
     override suspend fun addReview(review: Review): Result<Unit> {
-        reviews.update { it + review }
+        val me = auth.currentUserId.value ?: return Result.failure(notSignedIn())
+        ReviewRules.problem(review, me)?.let { return Result.failure(DataError(it)) }
+
+        val id = ReviewRules.reviewId(review.promptId, me)
+        if (reviews.value.any { it.id == id }) return Result.failure(DataError(ReviewRules.ALREADY_REVIEWED))
+
+        reviews.update { it + review.copy(id = id, fromUserId = me, createdAt = System.currentTimeMillis()) }
         return Result.success(Unit)
     }
 }

@@ -11,6 +11,9 @@ object ReviewRules {
 
     const val MAX_TEXT_LENGTH = 300
 
+    /** Both repositories use this, so the student sees the same words either way. */
+    const val ALREADY_REVIEWED = "You've already reviewed this deal."
+
     /**
      * The review's document id: the "Deal done" message plus the reviewer.
      * A second review of the same deal lands on the same id, which is how "only once" is enforced.
