@@ -38,6 +38,8 @@ fun MessageItem(
         MessageKind.THEIRS -> TextBubble(message = message, isMine = false, modifier = modifier)
         MessageKind.EVENT -> EventLine(text = message.text, modifier = modifier)
         MessageKind.SUGGESTION -> SuggestionCard(message = message, onOpenDeal = onOpenDeal, modifier = modifier)
+        // Later will draw this as a card with Rate
+        MessageKind.REVIEW_PROMPT -> EventLine(text = message.text, modifier = modifier)
     }
 }
 

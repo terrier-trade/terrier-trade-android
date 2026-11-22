@@ -9,10 +9,14 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import edu.bu.terriertrade.data.model.Chat
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.Review
+import edu.bu.terriertrade.data.model.ReviewTag
 import edu.bu.terriertrade.data.repository.AuthRepository
 import edu.bu.terriertrade.data.repository.ChatRepository
 import edu.bu.terriertrade.data.repository.ListingRepository
+import edu.bu.terriertrade.data.repository.ReviewRepository
 import edu.bu.terriertrade.data.repository.UserRepository
+import edu.bu.terriertrade.data.review.ReviewRules
 import edu.bu.terriertrade.di.appContainer
 import edu.bu.terriertrade.navigation.Routes
 import edu.bu.terriertrade.ui.common.UiState
@@ -29,6 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ChatViewModel(
@@ -37,6 +42,7 @@ class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val userRepository: UserRepository,
     private val listingRepository: ListingRepository,
+    private val reviewRepository: ReviewRepository,
     private val clock: () -> Long = { System.currentTimeMillis() },
 ) : ViewModel() {
 
@@ -59,8 +65,10 @@ class ChatViewModel(
                         userRepository.observeUser(chat.partnerId(me)),
                         chatRepository.observeMessages(chatId),
                         observeDealListings(chat),
-                    ) { partner, messages, listings ->
-                        buildChatContent(me, chat, partner, messages, listings, clock())
+                        // Which "Deal done" messages I've rated, so each shows Rate or "You rated"
+                        reviewRepository.observeMyReviewedPrompts(chatId),
+                    ) { partner, messages, listings, reviewed ->
+                        buildChatContent(me, chat, partner, messages, listings, clock(), reviewed)
                     }
                 }
             }
@@ -227,6 +235,97 @@ class ChatViewModel(
         }
     }
 
+    // Review sheet --------------------------------------------------------------------------------
+
+    /** The review being written, or null while the sheet is closed. */
+    private val reviewDraft = MutableStateFlow<ReviewDraft?>(null)
+
+    /** The review sheet. Partner names come from the loaded chat. */
+    val reviewSheet: StateFlow<ReviewSheetState> =
+        combine(reviewDraft, uiState, authRepository.currentUserId) { draft, state, me ->
+            val content = (state as? UiState.Success)?.data
+            if (draft == null || content == null || me == null) {
+                ReviewSheetState()
+            } else {
+                ReviewSheetState(
+                    isOpen = true,
+                    partnerFirstName = content.partnerFirstName,
+                    stars = draft.stars,
+                    tags = draft.tags,
+                    text = draft.text,
+                    // Same rules the repository checks, so Send is never on for a review that would fail
+                    canSend = !draft.isSaving && ReviewRules.problem(draft.toReview(chatId, content.partnerId), me) == null,
+                    isSaving = draft.isSaving,
+                    error = draft.error,
+                )
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ReviewSheetState(),
+        )
+
+    /** Rate on a "Deal done" message. Does nothing if I've already reviewed that deal. */
+    fun openReview(promptId: String) {
+        val content = (uiState.value as? UiState.Success)?.data ?: return
+        val prompt = content.messages.find { it.id == promptId && it.kind == MessageKind.REVIEW_PROMPT } ?: return
+        if (prompt.isRated) return
+        reviewDraft.value = ReviewDraft(promptId)
+    }
+
+    /** Closing drops what was written. It's short, so nothing important is lost. */
+    fun closeReview() {
+        reviewDraft.value = null
+    }
+
+    fun onStarsChange(stars: Int) =
+        reviewDraft.update { it?.copy(stars = stars.coerceIn(1, 5), error = null) }
+
+    fun onTagToggle(tag: ReviewTag) =
+        reviewDraft.update { draft -> draft?.copy(tags = if (tag in draft.tags) draft.tags - tag else draft.tags + tag, error = null) }
+
+    /** Stops at the limit, so the box can't hold more than can be saved. */
+    fun onReviewTextChange(text: String) =
+        reviewDraft.update { it?.copy(text = text.take(ReviewRules.MAX_TEXT_LENGTH), error = null) }
+
+    /** Saves the review. On success the sheet closes and the prompt changes to "You rated". */
+    fun sendReview() {
+        val draft = reviewDraft.value ?: return
+        if (draft.isSaving) return
+        val partnerId = (uiState.value as? UiState.Success)?.data?.partnerId ?: return
+
+        reviewDraft.value = draft.copy(isSaving = true, error = null)
+        viewModelScope.launch {
+            reviewRepository.addReview(draft.toReview(chatId, partnerId))
+                .onSuccess { reviewDraft.value = null }
+                .onFailure { error ->
+                    reviewDraft.update { it?.copy(isSaving = false, error = error.message ?: "Couldn't save your review. Try again.") }
+                }
+        }
+    }
+
+    /** What's been picked so far for the deal that ended with [promptId]. */
+    private data class ReviewDraft(
+        val promptId: String,
+        val stars: Int = 0,
+        val tags: Set<ReviewTag> = emptySet(),
+        val text: String = "",
+        val isSaving: Boolean = false,
+        val error: String? = null,
+    ) {
+        /** Who wrote it and when are filled in by the repository. Tags keep the order they're shown in. */
+        fun toReview(chatId: String, partnerId: String) = Review(
+            id = "",
+            fromUserId = "",
+            toUserId = partnerId,
+            chatId = chatId,
+            stars = stars,
+            tags = ReviewTag.entries.filter { it in tags },
+            text = text,
+            promptId = promptId,
+        )
+    }
+
     private data class DealProgress(val isSaving: Boolean = false, val error: String? = null)
 
     /**
@@ -255,6 +354,7 @@ class ChatViewModel(
                     chatRepository = container.chatRepository,
                     userRepository = container.userRepository,
                     listingRepository = container.listingRepository,
+                    reviewRepository = container.reviewRepository,
                 )
             }
         }

@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import edu.bu.terriertrade.data.fake.FakeAuthRepository
 import edu.bu.terriertrade.data.fake.FakeChatRepository
 import edu.bu.terriertrade.data.fake.FakeListingRepository
+import edu.bu.terriertrade.data.fake.FakeReviewRepository
 import edu.bu.terriertrade.data.fake.FakeUserRepository
 import edu.bu.terriertrade.data.model.Message
 import edu.bu.terriertrade.data.model.MessageType
@@ -38,6 +39,7 @@ class ChatViewModelTest {
         chatRepository = FakeChatRepository(auth),
         userRepository = FakeUserRepository(),
         listingRepository = FakeListingRepository(auth),
+        reviewRepository = FakeReviewRepository(auth),
     )
 
     private fun TestScope.startCollecting(viewModel: ChatViewModel) {

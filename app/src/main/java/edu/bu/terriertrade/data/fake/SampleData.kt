@@ -167,7 +167,7 @@ object SampleData {
         Message("b3", "c_nina", ME, MessageType.TEXT, "Thursday works, see you then!", createdAt = hoursAgo(1)),
         Message("c1", "c_maya", ME, MessageType.EVENT, "You requested Linear Algebra textbook", createdAt = hoursAgo(24 * 17)),
         Message("c2", "c_maya", "maya", MessageType.TEXT, "Thanks for the quick trade!", createdAt = hoursAgo(24 * 16)),
-        Message("c3", "c_maya", ME, MessageType.EVENT, "Deal done", createdAt = hoursAgo(24 * 16)),
+        Message("c3", "c_maya", "maya", MessageType.REVIEW_PROMPT, "Deal done", createdAt = hoursAgo(24 * 16)),
     )
 
     val reviews: List<Review> = listOf(

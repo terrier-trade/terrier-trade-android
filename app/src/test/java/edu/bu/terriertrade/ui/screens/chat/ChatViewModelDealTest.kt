@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import edu.bu.terriertrade.data.fake.FakeAuthRepository
 import edu.bu.terriertrade.data.fake.FakeChatRepository
 import edu.bu.terriertrade.data.fake.FakeListingRepository
+import edu.bu.terriertrade.data.fake.FakeReviewRepository
 import edu.bu.terriertrade.data.fake.FakeUserRepository
 import edu.bu.terriertrade.data.fake.SampleData
 import edu.bu.terriertrade.data.model.DealItem
@@ -43,6 +44,7 @@ class ChatViewModelDealTest {
             chatRepository = chats,
             userRepository = FakeUserRepository(),
             listingRepository = FakeListingRepository(auth),
+            reviewRepository = FakeReviewRepository(auth),
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.dealSheet.collect {} }
         viewModel.openDeal()
