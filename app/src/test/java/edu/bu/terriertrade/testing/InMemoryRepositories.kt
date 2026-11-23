@@ -10,6 +10,7 @@ import edu.bu.terriertrade.data.repository.SavedListingsRepository
 import edu.bu.terriertrade.data.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
@@ -81,6 +82,9 @@ class InMemorySavedRepository(initial: Set<String> = emptySet()) : SavedListings
  */
 class InMemoryReviewRepository(initial: List<Review> = emptyList()) : ReviewRepository {
     val reviews = MutableStateFlow(initial)
+
+    // The profile tests that use this never ask which deals were reviewed
+    override fun observeMyReviewedPrompts(chatId: String): Flow<Set<String>> = flowOf(emptySet())
 
     override fun observeReviewsFor(userId: String): Flow<List<Review>> =
         reviews.map { all -> all.filter { it.toUserId == userId }.sortedByDescending { it.createdAt } }

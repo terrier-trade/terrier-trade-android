@@ -100,7 +100,10 @@ class FirestoreMappersTest {
 
     @Test
     fun review_roundTrips_andTagsAreNames() {
-        val review = Review("r1", "maya", "alex", "c1", stars = 5, tags = listOf(ReviewTag.ON_TIME), text = " Great ", createdAt = 7L)
+        val review = Review(
+            "r1", "maya", "alex", "c1", stars = 5, tags = listOf(ReviewTag.ON_TIME),
+            text = " Great ", createdAt = 7L, promptId = "m9",
+        )
         val map = review.toMap()
         assertEquals(listOf("ON_TIME"), map["tags"])
 
@@ -108,6 +111,7 @@ class FirestoreMappersTest {
         assertEquals(listOf(ReviewTag.ON_TIME), back.tags)
         assertEquals("Great", back.text)
         assertEquals(7L, back.createdAt)
+        assertEquals("m9", back.promptId)
     }
 
     @Test

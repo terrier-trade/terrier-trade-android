@@ -83,7 +83,7 @@ data class DealSheetActions(
     val onCancelDeal: () -> Unit = {},
 )
 
-private val SheetShape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
+internal val SheetShape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
 
 /**
  * The deal window as a bottom sheet, laid out like the prototype: the deal split into
@@ -241,7 +241,7 @@ internal fun DealSheetContent(
 // Header ------------------------------------------------------------------------------------------
 
 @Composable
-private fun DragHandle() {
+internal fun DragHandle() {
     Box(
         Modifier
             .padding(top = 10.dp, bottom = 6.dp)
@@ -251,7 +251,7 @@ private fun DragHandle() {
 }
 
 @Composable
-private fun SheetHeader(title: String, rule: String, onClose: () -> Unit) {
+internal fun SheetHeader(title: String, rule: String, onClose: () -> Unit) {
     Column(
         modifier = Modifier.padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(Spacing.sm),
@@ -308,7 +308,7 @@ private fun DealSide(heading: String, rows: List<DealRowUi>, headingColor: Color
 }
 
 @Composable
-private fun SectionLabel(text: String, color: Color) {
+internal fun SectionLabel(text: String, color: Color) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,

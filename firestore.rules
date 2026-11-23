@@ -28,6 +28,23 @@ service cloud.firestore {
         && resource.data.ownerId in chat.participantIds;
     }
 
+    // A review must be about a deal you finished together: both of you are in the chat,
+    // and promptId is that chat's "Deal done" message. The id is promptId_reviewer, and
+    // reviews can't be edited, so each person reviews each finished deal once.
+    function isReviewOfMyFinishedDeal(reviewId) {
+      let review = request.resource.data;
+      let people = get(/databases/$(database)/documents/chats/$(review.chatId)).data.participantIds;
+      let prompt = get(/databases/$(database)/documents/chats/$(review.chatId)/messages/$(review.promptId)).data;
+      return review.fromUserId == request.auth.uid
+        && review.toUserId != request.auth.uid
+        && request.auth.uid in people
+        && review.toUserId in people
+        && prompt.type == 'REVIEW_PROMPT'
+        && reviewId == review.promptId + '_' + request.auth.uid
+        && review.stars is int && review.stars >= 1 && review.stars <= 5
+        && review.text is string && review.text.size() <= 300;
+    }
+
     // Profiles: any student can read, only you can write yours
     match /users/{uid} {
       allow read: if isBuStudent();
@@ -60,10 +77,10 @@ service cloud.firestore {
       }
     }
 
-    // Reviews: any student can read, you can only write reviews from yourself
+    // Reviews: any student can read. You can only review someone you finished a deal with, once.
     match /reviews/{reviewId} {
       allow read: if isBuStudent();
-      allow create: if isBuStudent() && request.resource.data.fromUserId == request.auth.uid;
+      allow create: if isBuStudent() && isReviewOfMyFinishedDeal(reviewId);
     }
   }
 }

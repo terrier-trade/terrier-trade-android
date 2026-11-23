@@ -9,8 +9,8 @@ import edu.bu.terriertrade.data.model.User
 import edu.bu.terriertrade.util.TimeFormat
 import java.util.Locale
 
-/** How a message is drawn: my bubble, their bubble, a grey event line, or a deal suggestion card. */
-enum class MessageKind { MINE, THEIRS, EVENT, SUGGESTION }
+/** How a message is drawn: my bubble, their bubble, a grey event line, a deal suggestion card, or a review prompt. */
+enum class MessageKind { MINE, THEIRS, EVENT, SUGGESTION, REVIEW_PROMPT }
 
 data class MessageUi(
     val id: String,
@@ -19,6 +19,8 @@ data class MessageUi(
     val timeLabel: String = "",
     /** Suggestions only: true while this is still the proposal waiting for an answer. */
     val isActive: Boolean = false,
+    /** Review prompts only: true once I've reviewed this finished deal. */
+    val isRated: Boolean = false,
 )
 
 /** What the deal bar shows on its right side. */
@@ -64,6 +66,7 @@ fun Message.toUi(
     partnerFirstName: String,
     nowMillis: Long,
     pendingProposalId: String? = null,
+    reviewedPrompts: Set<String> = emptySet(),
 ): MessageUi {    val time = TimeFormat.ago(createdAt, nowMillis)
     return when (type) {
         MessageType.TEXT -> MessageUi(
@@ -88,10 +91,13 @@ fun Message.toUi(
             timeLabel = time,
             isActive = proposalId != null && proposalId == pendingProposalId,
         )
+        // The end of a finished deal. It offers Rate until I've reviewed this deal.
         MessageType.REVIEW_PROMPT -> MessageUi(
             id = id,
-            text = "Deal done. Rate $partnerFirstName",
-            kind = MessageKind.EVENT,
+            text = "Deal done with $partnerFirstName",
+            kind = MessageKind.REVIEW_PROMPT,
+            timeLabel = time,
+            isRated = id in reviewedPrompts,
         )
     }
 }
@@ -104,6 +110,7 @@ fun buildChatContent(
     messages: List<Message>,
     dealListings: Map<String, Listing>,
     nowMillis: Long,
+    reviewedPrompts: Set<String> = emptySet(),
 ): ChatContent {
     val firstName = partner?.firstName ?: "them"
 
@@ -133,7 +140,7 @@ fun buildChatContent(
         partnerInitials = partner?.initials ?: "?",
         partnerRatingLabel = partner?.takeIf { it.reviewCount > 0 }
             ?.let { String.format(Locale.US, "%.1f", it.rating) } ?: "New",
-        messages = messages.map { it.toUi(myId, firstName, nowMillis, chat.deal?.pending?.id) },
+        messages = messages.map { it.toUi(myId, firstName, nowMillis, chat.deal?.pending?.id, reviewedPrompts) },
         dealBar = dealBar,
     )
 }
