@@ -46,7 +46,7 @@ import edu.bu.terriertrade.ui.components.profile.TTAvatar
 import edu.bu.terriertrade.ui.theme.Spacing
 import edu.bu.terriertrade.ui.theme.TerrierTradeTheme
 
-/** One conversation, used by navigation. Owns [ChatViewModel] and the deal sheet. */
+/** One conversation, used by navigation. Owns [ChatViewModel], the deal sheet and the review sheet. */
 @Composable
 fun ChatRoute(
     onBack: () -> Unit,
@@ -57,6 +57,7 @@ fun ChatRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val draft by viewModel.draft.collectAsStateWithLifecycle()
     val dealSheet by viewModel.dealSheet.collectAsStateWithLifecycle()
+    val reviewSheet by viewModel.reviewSheet.collectAsStateWithLifecycle()
 
     ChatScreen(
         state = state,
@@ -66,6 +67,7 @@ fun ChatRoute(
         onBack = onBack,
         onOpenProfile = onOpenProfile,
         onOpenDeal = viewModel::openDeal,
+        onRate = viewModel::openReview,
         modifier = modifier,
     )
 
@@ -84,6 +86,17 @@ fun ChatRoute(
             onCancelDeal = viewModel::cancelDeal,
         ),
     )
+
+    ReviewSheet(
+        state = reviewSheet,
+        actions = ReviewSheetActions(
+            onClose = viewModel::closeReview,
+            onStarsChange = viewModel::onStarsChange,
+            onTagToggle = viewModel::onTagToggle,
+            onTextChange = viewModel::onReviewTextChange,
+            onSend = viewModel::sendReview,
+        ),
+    )
 }
 
 /** Draws the chat from [state]. No ViewModel, so it can be previewed. */
@@ -96,6 +109,7 @@ fun ChatScreen(
     onBack: () -> Unit,
     onOpenProfile: (userId: String) -> Unit,
     onOpenDeal: () -> Unit,
+    onRate: (promptId: String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val content = (state as? UiState.Success)?.data
@@ -127,6 +141,7 @@ fun ChatScreen(
                 MessageList(
                     content = loaded,
                     onOpenDeal = onOpenDeal,
+                    onRate = onRate,
                     modifier = Modifier.weight(1f),
                 )
                 MessageInput(draft = draft, onDraftChange = onDraftChange, onSend = onSend)
@@ -189,6 +204,7 @@ private fun ChatTopBar(
 private fun MessageList(
     content: ChatContent,
     onOpenDeal: () -> Unit,
+    onRate: (promptId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -218,7 +234,7 @@ private fun MessageList(
             }
         }
         items(content.messages, key = { it.id }) { message ->
-            MessageItem(message = message, onOpenDeal = onOpenDeal)
+            MessageItem(message = message, onOpenDeal = onOpenDeal, onRate = onRate)
         }
     }
 }

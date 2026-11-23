@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,12 +27,14 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import edu.bu.terriertrade.ui.preview.TTPreviewColumn
 import edu.bu.terriertrade.ui.theme.Spacing
+import edu.bu.terriertrade.ui.theme.TTTheme
 
 /** Draws one message in the chat based on its kind. */
 @Composable
 fun MessageItem(
     message: MessageUi,
     onOpenDeal: () -> Unit,
+    onRate: (promptId: String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     when (message.kind) {
@@ -38,8 +42,7 @@ fun MessageItem(
         MessageKind.THEIRS -> TextBubble(message = message, isMine = false, modifier = modifier)
         MessageKind.EVENT -> EventLine(text = message.text, modifier = modifier)
         MessageKind.SUGGESTION -> SuggestionCard(message = message, onOpenDeal = onOpenDeal, modifier = modifier)
-        // Later will draw this as a card with Rate
-        MessageKind.REVIEW_PROMPT -> EventLine(text = message.text, modifier = modifier)
+        MessageKind.REVIEW_PROMPT -> ReviewPromptCard(message = message, onRate = { onRate(message.id) }, modifier = modifier)
     }
 }
 
@@ -167,6 +170,45 @@ private fun ClosedSuggestion(message: MessageUi, modifier: Modifier) {
     }
 }
 
+/** The end of a finished deal. Green like a success, with Rate until I've reviewed it. */
+@Composable
+private fun ReviewPromptCard(message: MessageUi, onRate: () -> Unit, modifier: Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = TTTheme.colors.successContainer,
+        contentColor = TTTheme.colors.onSuccessContainer,
+    ) {
+        Row(
+            modifier = Modifier.padding(start = Spacing.md, top = Spacing.sm, bottom = Spacing.sm, end = Spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        ) {
+            Icon(Icons.Outlined.TaskAlt, contentDescription = null)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = message.text, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = if (message.isRated) "Thanks for your review" else "How did it go? Leave a quick review.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            if (message.isRated) {
+                Row(
+                    modifier = Modifier.padding(end = Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                ) {
+                    Icon(Icons.Filled.Star, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
+                    Text("Rated", style = MaterialTheme.typography.labelMedium)
+                }
+            } else {
+                TextButton(onClick = onRate) { Text("Rate") }
+            }
+        }
+    }
+}
+
 @PreviewLightDark
 @Composable
 private fun MessageItemPreview() {
@@ -176,6 +218,8 @@ private fun MessageItemPreview() {
         MessageUi("3", "Great. Can we meet at GSU tomorrow? Would you do \$40?", MessageKind.MINE, "30m"),
         MessageUi("4", "Sam suggested changes to the deal", MessageKind.SUGGESTION, "2m", isActive = true),
         MessageUi("5", "You suggested changes to the deal", MessageKind.SUGGESTION, "1h"),
+        MessageUi("6", "Deal done with Maya", MessageKind.REVIEW_PROMPT, "16d"),
+        MessageUi("7", "Deal done with Sam", MessageKind.REVIEW_PROMPT, "30d", isRated = true),
     )
     TTPreviewColumn {
         messages.forEach { MessageItem(message = it, onOpenDeal = {}) }
