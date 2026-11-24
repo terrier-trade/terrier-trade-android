@@ -95,6 +95,9 @@ private fun DealTagPill(tag: DealTag, partnerFirstName: String) {
         DealTag.OPEN -> Triple(
             "Deal open", TTTheme.colors.successContainer, TTTheme.colors.onSuccessContainer,
         )
+        DealTag.CONFIRM_DONE -> Triple(
+            "Confirm done", MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.onPrimary,
+        )
     }
     Surface(color = container, contentColor = content, shape = CircleShape) {
         Text(

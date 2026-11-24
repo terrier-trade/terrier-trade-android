@@ -183,4 +183,20 @@ class DealWindowUiStateTest {
         assertFalse(ui.canMarkDone)
         assertNull(ui.markDoneBlockedReason)
     }
+
+    @Test
+    fun theirLookingForPost_isLabelled_andIGiveIt() {
+        // Sam is Looking for a lamp. If I fill his request, I give it and he pays me.
+        val samWantsLamp = listing("l6", owner = sam, title = "Desk lamp", price = 15).copy(type = ListingType.WANTED)
+
+        val ui = window(
+            deal = Deal(items = listOf(DealItem("l6", 15)), version = 1),
+            listings = all + ("l6" to samWantsLamp),
+        )
+
+        val row = ui.rows.single()
+        assertTrue(row.isWanted)
+        assertFalse(row.youGet)
+        assertEquals("Sam pays you \$15", ui.totalLabel)
+    }
 }

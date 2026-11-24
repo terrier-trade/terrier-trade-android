@@ -14,8 +14,9 @@ enum class ChatGroup(val title: String) {
 /** Small tag shown under a chat's last message. */
 enum class DealTag {
     REVIEW_CHANGES, // the other person suggested a change, you need to answer
-    WAITING,        // you suggested a change, waiting for them
+    WAITING,        // you suggested a change or marked it done, waiting for them
     OPEN,           // deal in progress, nothing waiting
+    CONFIRM_DONE,   // the other person marked the deal done, your tap finishes it
 }
 
 /** One row in the chats list, ready to display. */
@@ -39,16 +40,21 @@ data class ChatSection(
 /** Turns a Chat and the other person's profile into a row for the list. */
 fun Chat.toRow(myId: String, partner: User?, nowMillis: Long): ChatRowUi {
     val pending = deal?.pending
+    val theirChangesWait = pending != null && pending.fromUserId != myId
+    // Same order as the deal bar: waiting changes first, then whoever tapped Mark as done
+    val theyMarkedDone = deal != null && pending == null && deal.doneBy.isNotEmpty() && myId !in deal.doneBy
+    val iMarkedDone = deal != null && myId in deal.doneBy
 
     val group = when {
-        pending != null && pending.fromUserId != myId -> ChatGroup.NEEDS_REPLY
+        theirChangesWait || theyMarkedDone -> ChatGroup.NEEDS_REPLY
         deal != null -> ChatGroup.ACTIVE
         else -> ChatGroup.EARLIER
     }
 
     val tag = when {
-        group == ChatGroup.NEEDS_REPLY -> DealTag.REVIEW_CHANGES
-        pending != null -> DealTag.WAITING
+        theirChangesWait -> DealTag.REVIEW_CHANGES
+        theyMarkedDone -> DealTag.CONFIRM_DONE
+        pending != null || iMarkedDone -> DealTag.WAITING
         deal != null -> DealTag.OPEN
         else -> null
     }
