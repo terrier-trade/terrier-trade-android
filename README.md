@@ -9,31 +9,42 @@ Terrier Trade is an Android app where Boston University students can list things
 ## Team
 
 - Priya Bajaria
-- Jerin Joseph
+- Jerin Joseph (scrum master)
 
 ## Problem
 
 Buying and selling at BU is spread across Facebook groups, Marketplace and group chats. These include strangers and scams, and there is no easy way to swap items plus cash in one deal.
 
-## Core Features
+## Project documents
 
-- Sign up with a verified @bu.edu email
-- Create listings with a camera photo, title, price and category
-- Scan a textbook barcode to fill in the title, author and cover
-- Browse and search listings, including offline
-- Request an item, which opens a chat with the seller and starts a deal
-- Trade window in the chat where both people agree on the items and the amount (in progress)
-- Both people confirm when the trade is done, or either can cancel (in progress)
+| Milestone | Documents |
+|---|---|
+| Proposal | [Report](docs/proposal/terrier-trade-proposal-report.pdf), [Slides](docs/proposal/terrier-trade-proposal-slides.pdf) |
+| Project Update 1 | [Slides](docs/update-1/project-update-1-slides.pdf), [Demo video](docs/update-1/project-update-1-demo.mp4) |
+| Project Update 2 | [Slides](docs/update-2/project-update-2-slides.pdf), [Demo video](docs/update-2/project-update-2-demo.mp4) |
+
+## Features
+
+- Sign up with a verified @bu.edu email, and edit your profile
+- Post items, services, tickets and "Looking for" posts with a title, price, category and photos
+- Scan a textbook barcode to fill in the title, author and cover from Open Library
+- Browse, search and filter listings, and save the ones you like
+- Request a listing, which opens a chat with the owner and starts a deal
+- Deal sheet in the chat: both people see what they get, what they give and who pays. Either person can suggest changes, and nothing changes until the other person accepts
+- Both people confirm when the deal is done, and sold items are marked sold. Either person can cancel
+- After a finished deal, each person can leave one review with stars, tags and a short note
+- Browse, listing pages and profiles keep working offline from a Room cache
+- Every screen has loading, empty, error and offline states, with Try again
 
 ## Tech Stack
 
 - Kotlin and Jetpack Compose, Navigation Compose
 - MVVM: ViewModels expose UI state, screens are stateless, repositories hide where data comes from
-- Firebase Auth (verified @bu.edu email) and Cloud Firestore (listings, profiles, chats, deals)
+- Firebase Auth (verified @bu.edu email) and Cloud Firestore (listings, profiles, chats, deals, reviews)
+- Room for the offline listing cache
 - Open Library API through Retrofit, for book details from an ISBN
 - CameraX and ML Kit for barcode scanning
 - Coil for images
-- Planned: Room for an offline cache, Firebase Storage for listing photos
 
 ## Milestones
 
@@ -45,6 +56,16 @@ Buying and selling at BU is spread across Facebook groups, Marketplace and group
 | Nov 24 | Project Update 2 |
 | Dec 8 | Final submission and showcase |
 
+## Status and next steps
+
+The full trade loop works end to end: request, chat, deal, done, review. Planned before the final submission:
+
+- Photo upload to Firebase Storage, so other students can see photos taken on the phone
+- Notifications (the bell currently opens a placeholder screen)
+- Delete a chat, report a listing or user, and block a user
+- A message when a save is waiting for the connection
+- More UI tests and an accessibility pass
+
 ## Setup
 
 Requirements: the latest stable Android Studio, its bundled JDK, and an emulator or phone on Android 8.0 (API 26) or newer.
@@ -55,13 +76,40 @@ Requirements: the latest stable Android Studio, its bundled JDK, and an emulator
 4. Choose the `app` run configuration and press Run.
 5. Sign up with a @bu.edu email and open the verification link. Firestore only lets verified BU accounts read or write (see `firestore.rules`).
 
+To try a full trade, run two emulators signed in as two different students.
+
 Useful Gradle commands (use `./gradlew` on macOS and Linux):
 
 | Command | What it does |
 |---|---|
 | `.\gradlew testDebugUnitTest` | Runs every unit test |
+| `.\gradlew connectedDebugAndroidTest` | Runs the Compose UI tests on the running emulator or phone |
 | `.\gradlew assembleDebug` | Builds the debug APK |
 | `.\gradlew installDebug` | Builds and installs on the running emulator or phone |
+
+## Testing
+
+Rules, mappers and ViewModels are plain Kotlin and run against fake repositories, so the unit tests finish in seconds without Firebase.
+
+| Area | Main test files |
+|---|---|
+| Deal rules and the money total | `DealRulesTest`, `DealMathTest`, `RequestRulesTest` |
+| Deal changes, finishing and cancelling | `FakeChatRepositoryDealTest`, `FakeChatRepositoryEndDealTest`, `FakeChatRepositoryRequestTest` |
+| Deal sheet, chat and Chats list | `DealWindowUiStateTest`, `DealBarStatusTest`, `ChatViewModelDealTest`, `ChatViewModelTest`, `ChatsUiStateTest` |
+| Reviews | `ReviewRulesTest`, `FakeReviewRepositoryTest`, `ChatViewModelReviewTest` |
+| Room offline cache | `CachedListingRepositoryTest`, `ListingEntityMappersTest` |
+| Sign up, sign in, profiles, listings | `SignUpViewModelTest`, `LoginViewModelTest`, `EditProfileViewModelTest`, `NewListingViewModelTest`, `BrowseViewModelTest`, ... |
+| Compose UI test | `androidTest/.../PostListingTest`: post a listing, empty form, save fails |
+
+## Privacy and security
+
+- `firestore.rules` only lets signed-in, verified @bu.edu accounts read or write.
+- You can only change your own profile and listings. The other person in a finished deal can mark your listing sold, and nothing else (`isSoldInSharedChat`).
+- Saved listings are private, and a chat can only be read by its two people. Messages can be created but never edited.
+- Each person can review each finished deal once, with 1 to 5 stars and up to 300 characters (`isReviewOfMyFinishedDeal`).
+- Deal changes run in a Firestore transaction through `DealRules`, and the UI disables actions that aren't allowed and says why.
+- `google-services.json` and `local.properties` are gitignored. Open Library needs no API key.
+- The camera is only used when scanning, and there are no payments in the app.
 
 ## Project structure
 
@@ -73,8 +121,11 @@ app/src/main/java/edu/bu/terriertrade/
     model/                 User, Listing, Chat, Message, Deal, Review, BookInfo
     repository/            interfaces the ViewModels depend on, plus DataError and observeUsers
     firebase/              Firebase Auth and Firestore versions of the repositories, and the field mappers
+    local/                 Room offline cache: ListingEntity, ListingDao, TerrierTradeDatabase,
+                           and CachedListingRepository, which wraps the Firestore listings
     openlibrary/           Open Library book lookup
-    deal/                  deal rules: what a request does (RequestRules) and the money total (DealMath)
+    deal/                  deal rules: requests (RequestRules), deal changes (DealRules), money total (DealMath)
+    review/                review rules (ReviewRules)
     fake/                  in-memory repositories and SampleData, for tests and previews
     network/               NetworkMonitor for the offline banner
   navigation/              Routes, NavHost, bottom bar, sign-in redirects
@@ -88,13 +139,19 @@ app/src/main/java/edu/bu/terriertrade/
                            buttons, inputs, selection, feedback, layout, listing, profile
     preview/               PreviewData and TTPreviewColumn, used only by @Preview functions
     screens/               one package per screen: auth, browse, listingdetail, newlisting,
-                           chats, chat, profile, placeholder
+                           chats, chat (with the deal and review sheets), profile, placeholder
   util/                    email, password and ISBN checks, price and time formatting
 
 app/src/test/java/edu/bu/terriertrade/
-  testing/                 shared test doubles (TestAuthRepository, InMemoryRepositories, ...)
+  testing/                 shared test doubles (TestAuthRepository, InMemoryRepositories, FakeListingDao, ...)
                            and MainDispatcherRule
   (everything else)        mirrors the main packages: a test lives in the package of the code it tests
+
+app/src/androidTest/java/edu/bu/terriertrade/
+  ui/screens/newlisting/   PostListingTest (Compose UI test)
+
+docs/                      proposal, update slides and demo videos
+firestore.rules            Firestore security rules
 ```
 
 ### How a screen is built
@@ -120,4 +177,5 @@ Each screen package has the same parts:
 | Sign up, sign in, verify | Priya | `navigation/graphs/AuthScreens.kt`, `ui/screens/auth/` |
 | Browse, new listing, listing detail, ISBN scan | Priya | `navigation/graphs/ListingScreens.kt`, `ui/screens/browse/`, `ui/screens/newlisting/`, `ui/screens/listingdetail/`, `data/openlibrary/` |
 | Profiles and saved listings | Priya | `navigation/graphs/ProfileScreens.kt`, `ui/screens/profile/` |
-| Chats, requests, deals, reviews, notifications | Jerin | `navigation/graphs/ChatScreens.kt`, `ui/screens/chats/`, `ui/screens/chat/`, `data/deal/` |
+| Offline cache and screen states | Priya | `data/local/`, `ui/common/`, `ui/components/feedback/` |
+| Chats, requests, deals, reviews, notifications | Jerin | `navigation/graphs/ChatScreens.kt`, `ui/screens/chats/`, `ui/screens/chat/`, `data/deal/`, `data/review/` |
