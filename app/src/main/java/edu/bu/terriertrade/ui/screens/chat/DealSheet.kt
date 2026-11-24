@@ -346,6 +346,9 @@ private fun rowNote(row: DealRowUi): String = when {
     !row.isAvailable -> "No longer available"
     row.change == RowChange.ADDED -> "New in these changes"
     row.change == RowChange.PRICE_CHANGED -> "Was \$${row.oldPrice}"
+    // Looking for posts flip who gives and who pays, so say so
+    row.isWanted && row.isMine -> "Your Looking for post"
+    row.isWanted -> "Their Looking for post"
     row.isMine -> "Your listing"
     else -> "Their listing"
 }
@@ -578,7 +581,11 @@ private fun EditSection(
         inDeal.forEach { row ->
             EditRow(
                 title = row.title,
-                note = if (row.isAvailable) "Listed at \$${row.listedPrice ?: row.price}" else "No longer available",
+                note = when {
+                    !row.isAvailable -> "No longer available"
+                    row.isWanted -> "Looking for · up to \$${row.listedPrice ?: row.price}"
+                    else -> "Listed at \$${row.listedPrice ?: row.price}"
+                },
                 checked = true,
                 onToggle = { actions.onRemove(row.listingId) },
                 price = row.price,
@@ -588,7 +595,7 @@ private fun EditSection(
         addable.forEach { item ->
             EditRow(
                 title = item.title,
-                note = "Listed at \$${item.price}",
+                note = if (item.isWanted) "Looking for · up to \$${item.price}" else "Listed at \$${item.price}",
                 checked = false,
                 onToggle = { actions.onAdd(item) },
                 price = null,

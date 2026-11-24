@@ -8,6 +8,7 @@ import edu.bu.terriertrade.data.model.Category
 import edu.bu.terriertrade.data.model.Deal
 import edu.bu.terriertrade.data.model.DealItem
 import edu.bu.terriertrade.data.model.Listing
+import edu.bu.terriertrade.data.model.ListingType
 
 /** What the deal window lets you do right now. */
 enum class DealMode {
@@ -43,6 +44,8 @@ data class DealRowUi(
     /** The price on the listing, shown struck through when the agreed price is different. */
     val listedPrice: Int? = null,
     val category: Category = Category.OTHER,
+    /** A Looking for post: its owner receives, the other person provides. Labelled so that flip is clear. */
+    val isWanted: Boolean = false,
 )
 
 /** A listing either person could add to the deal. */
@@ -52,6 +55,8 @@ data class AddableListingUi(
     val price: Int,
     val isMine: Boolean,
     val category: Category = Category.OTHER,
+    /** A Looking for post: its owner receives, the other person provides. Labelled so that flip is clear. */
+    val isWanted: Boolean = false,
 )
 
 /** Everything the deal window draws. */
@@ -142,7 +147,7 @@ fun buildDealWindow(
         (partnerListings.map { it to false } + myListings.map { it to true })
             .filter { (listing, _) -> listing.isActive && listing.id !in inDeal }
             .map { (listing, isMine) ->
-                AddableListingUi(listing.id, listing.title, listing.price, isMine, listing.category)
+                AddableListingUi(listing.id, listing.title, listing.price, isMine, listing.category, listing.type == ListingType.WANTED)
             }
     }
 
@@ -198,6 +203,7 @@ private fun dealRow(item: DealItem, listing: Listing?, myId: String, change: Row
     youGet = listing != null && receivesItem(listing, myId),
     listedPrice = listing?.price,
     category = listing?.category ?: Category.OTHER,
+    isWanted = listing?.type == ListingType.WANTED,
 )
 
 /** The deal sheet: closed, or open with its window while a change is saving or after it failed. */
